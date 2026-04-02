@@ -14,9 +14,10 @@ import face_recognition
 import sqlite3
 import pickle
 from datetime import datetime
-from gtts import gTTS
+import edge_tts
 import pygame
 import threading
+import asyncio
 
 
 @st.cache
@@ -146,9 +147,50 @@ def translate_to_hindi(text, client):
         return text  # Return original text on error
 
 
-def text_to_speech(text, language='en'):
+# Voice options for Edge-TTS (human-like voices)
+TTS_VOICES = {
+    'en': {
+        'male': 'en-US-GuyNeural',      # American English male (natural)
+        'female': 'en-US-JennyNeural',   # American English female (natural)
+        'uk_male': 'en-GB-RyanNeural',   # British English male
+        'uk_female': 'en-GB-SoniaNeural' # British English female
+    },
+    'hi': {
+        'male': 'hi-IN-MadhurNeural',
+        'female': 'hi-IN-SwaraNeural'
+    }
+}
+
+# Default voice type (can be overridden by sidebar selection)
+_default_voice_type = "female"
+
+def get_voice_type():
+    """Get the current voice type from session state or default."""
+    if "voice_type_select" in st.session_state:
+        voice_map = {
+            "Female (Jenny)": "female",
+            "Male (Guy)": "male",
+            "UK Female": "uk_female",
+            "UK Male": "uk_male"
+        }
+        return voice_map.get(st.session_state.voice_type_select, "female")
+    return _default_voice_type
+
+
+async def generate_speech_edge(text, output_path, voice='en-US-JennyNeural'):
+    """Generate speech using Edge-TTS (human-like voice)."""
+    try:
+        communicate = edge_tts.Communicate(text, voice)
+        await communicate.save(output_path)
+        return True
+    except Exception as e:
+        print(f"Edge-TTS error: {e}")
+        return False
+
+
+def text_to_speech(text, language='en', voice_type='female'):
     """
-    Convert text to speech and play through system audio (Bluetooth speaker).
+    Convert text to speech using Edge-TTS (human-like voice).
     Returns the audio file path if successful, None otherwise.
     """
     try:
@@ -156,21 +198,20 @@ def text_to_speech(text, language='en'):
         temp_audio = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
         temp_audio.close()
 
-        # Map language codes
-        lang_map = {
-            'en': 'en',
-            'en-US': 'en',
-            'en-GB': 'en',
-            'hi': 'hi',
-            'hindi': 'hi'
-        }
-        tts_lang = lang_map.get(language, 'en')
+        # Get appropriate voice
+        lang_code = 'hi' if language.lower() in ['hi', 'hindi'] else 'en'
+        voice_key = voice_type if voice_type in TTS_VOICES.get(lang_code, {}) else 'female'
+        voice = TTS_VOICES[lang_code][voice_key]
 
-        # Generate speech
-        tts = gTTS(text=text, lang=tts_lang, slow=False)
-        tts.save(temp_audio.name)
+        # Run async TTS
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        success = loop.run_until_complete(generate_speech_edge(text, temp_audio.name, voice))
+        loop.close()
 
-        return temp_audio.name
+        if success:
+            return temp_audio.name
+        return None
     except Exception as e:
         st.error(f"TTS Error: {str(e)}")
         return None
@@ -199,7 +240,7 @@ def play_audio_async(audio_path):
             pass
 
 
-def play_memory_audio(text, language='en'):
+def play_memory_audio(text, language='en', voice_type='female'):
     """
     Convert text to speech and play automatically.
     Plays through system default audio device (Bluetooth speaker if selected).
@@ -207,7 +248,7 @@ def play_memory_audio(text, language='en'):
     if not text or not text.strip():
         return
 
-    audio_path = text_to_speech(text, language)
+    audio_path = text_to_speech(text, language, voice_type)
     if audio_path:
         # Play in background thread to not block UI
         audio_thread = threading.Thread(target=play_audio_async, args=(audio_path,))
@@ -251,6 +292,75 @@ with st.sidebar.form(key='Form1'):
                                                       ' the age of wisdom, the age of foolishness, ...')
     spec = st.checkbox('Mark as extremely special')
     submitted = st.form_submit_button(label='Submit memory ⚡')
+
+# Person Management Section
+st.sidebar.markdown("---")
+st.sidebar.title("👥 Manage Persons")
+
+# Initialize database
+import database
+database.init_db()
+
+# Get all persons
+all_persons = database.get_all_known_faces()
+
+if all_persons:
+    st.sidebar.markdown("### ✏️ Edit Person Names")
+
+    for person in all_persons:
+        with st.sidebar.container():
+            st.markdown(f"**Person #{person['id']}**")
+
+            # Editable name field with a more prominent input
+            new_name = st.text_input(
+                "Name:",
+                value=person["name"],
+                key=f"edit_name_{person['id']}",
+                placeholder="Enter person's name..."
+            )
+
+            # Save button prominently placed
+            if st.button("💾 Save Name", key=f"save_name_{person['id']}", type="primary"):
+                if new_name.strip():
+                    database.update_person_name(person["id"], new_name.strip())
+                    st.session_state.known_faces = database.get_all_known_faces()
+                    st.success(f"✅ Updated to: {new_name}")
+                    st.rerun()
+                else:
+                    st.error("Name cannot be empty")
+
+            # Show conversation count (get all conversations)
+            all_conversations = database.get_conversations_for_person(person["id"], limit=100)
+            st.caption(f"📝 {len(all_conversations)} conversation(s) recorded")
+
+            # Play memory audio button (use most recent - first in list due to ORDER BY id DESC)
+            if all_conversations:
+                last_conv = all_conversations[0]
+                if st.button(f"🔊 Play Last Memory", key=f"play_{person['id']}"):
+                    # Use the potentially updated name from the text input
+                    current_name = new_name if new_name.strip() else person["name"]
+                    memory_text = f"{current_name}'s last memory: {last_conv['transcription']}"
+                    play_memory_audio(memory_text, 'en', get_voice_type())
+                    st.info("Playing audio...")
+
+            st.sidebar.markdown("---")
+else:
+    st.sidebar.info("No persons saved yet. Record a video to add someone!")
+
+# Voice settings
+st.sidebar.markdown("---")
+st.sidebar.title("🎤 Voice Settings")
+voice_option = st.sidebar.selectbox("Voice Type", ["Female (Jenny)", "Male (Guy)", "UK Female", "UK Male"], key="voice_type_select")
+
+# Helper function to get voice type from selection
+def get_voice_type():
+    voice_map = {
+        "Female (Jenny)": "female",
+        "Male (Guy)": "male",
+        "UK Female": "uk_female",
+        "UK Male": "uk_male"
+    }
+    return voice_map.get(voice_option, "female")
 
 # run = st.checkbox('Run')
 run = st.selectbox("", ("Pick an AI model to start!", "Face & person recognition", "Object detection", "Record Live Memory", "Record Video with Live Subtitles"))
@@ -473,17 +583,36 @@ elif run == "Record Video with Live Subtitles":
                 st.session_state.recorded_frames = []
                 st.session_state.audio_chunks = []
                 st.session_state.pending_face_data = None  # Reset pending face data
+                st.session_state.detected_person = None  # Reset detected person
                 st.session_state.frame_errors = 0  # Reset frame errors
                 st.success("Recording started! Speak clearly into your microphone.")
 
             if stop_recording and st.session_state.is_recording:
                 st.session_state.is_recording = False
 
-                # Auto-save face data and last conversation if a face was detected
-                if st.session_state.pending_face_data:
-                    # Generate a default name if no face was saved yet
-                    default_name = f"Person_{int(time())}"
+                # Save conversation to the detected person (known face) if available
+                if st.session_state.get("detected_person") and st.session_state.detected_person:
+                    # A known person was recognized - save conversation to their existing record
+                    person_id = st.session_state.detected_person["id"]
+                    person_name = st.session_state.detected_person["name"]
 
+                    if st.session_state.full_transcription:
+                        full_text = " ".join([t["text"] for t in st.session_state.full_transcription])
+                        if full_text.strip():
+                            database.save_conversation(person_id, full_text)
+                            st.success(f"Conversation saved for {person_name}!")
+                            st.info(f"Last conversation: '{full_text[:100]}...'")
+                        else:
+                            st.info(f"No conversation recorded for {person_name}.")
+                    else:
+                        st.info(f"No conversation recorded for {person_name}.")
+
+                    # Update known faces in session state
+                    st.session_state.known_faces = database.get_all_known_faces()
+                    st.session_state.detected_person = None
+
+                # If unknown face was detected, save as new person
+                elif st.session_state.pending_face_data:
                     # Save face to database automatically
                     face_encoding = st.session_state.pending_face_data["face_encoding"]
                     face_frame = st.session_state.pending_face_data["face_frame"]

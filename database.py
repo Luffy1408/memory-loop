@@ -193,8 +193,9 @@ def get_conversations_for_person(person_id: int, limit: int = 1) -> List[Dict[st
     conn = get_connection()
     cursor = conn.cursor()
 
+    # Order by id DESC to get most recent conversations first (id is auto-incrementing)
     cursor.execute(
-        "SELECT * FROM conversations WHERE person_id = ? ORDER BY recorded_at DESC LIMIT ?",
+        "SELECT * FROM conversations WHERE person_id = ? ORDER BY id DESC LIMIT ?",
         (person_id, limit)
     )
     rows = cursor.fetchall()
@@ -244,6 +245,34 @@ def delete_known_face(person_id: int):
 
     conn.commit()
     conn.close()
+
+
+def update_person_name(person_id: int, new_name: str) -> bool:
+    """
+    Update the name of a person in the database.
+
+    Args:
+        person_id: ID of the person to update
+        new_name: New name for the person
+
+    Returns:
+        True if successful, False otherwise
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    try:
+        cursor.execute(
+            "UPDATE known_faces SET name = ? WHERE id = ?",
+            (new_name, person_id)
+        )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"Error updating person name: {e}")
+        conn.close()
+        return False
 
 
 def get_all_conversations_with_persons() -> List[Dict[str, Any]]:
