@@ -1,0 +1,12 @@
+numpy
+torch
+seaborn
+matplotlib
+tqdm
+streamlit
+opencv-python
+ipython
+groq
+streamlit-webrtc
+pyaudio
+Pillow
