@@ -48,6 +48,22 @@ def init_db():
         )
     """)
 
+    # Create medical_routines table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS medical_routines (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            person_id INTEGER NOT NULL,
+            medicine_name TEXT NOT NULL,
+            dosage TEXT,
+            frequency TEXT,
+            time_of_day TEXT,
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (person_id) REFERENCES known_faces (id)
+        )
+    """)
+
     conn.commit()
     conn.close()
 
@@ -373,3 +389,180 @@ def get_all_conversations() -> List[Dict[str, Any]]:
 
 # Initialize database when module is imported
 init_db()
+
+
+# ============ Medical Routines Functions ============
+
+def add_medical_routine(person_id: int, medicine_name: str, dosage: str = "",
+                        frequency: str = "", time_of_day: str = "", notes: str = "") -> int:
+    """
+    Add a medical routine for a person.
+
+    Args:
+        person_id: ID of the person
+        medicine_name: Name of the medicine
+        dosage: Dosage information (e.g., "1 pill", "5ml")
+        frequency: How often to take (e.g., "Daily", "Twice daily")
+        time_of_day: When to take (e.g., "Morning", "After lunch", "8:00 AM")
+        notes: Additional notes
+
+    Returns:
+        The ID of the newly inserted record
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO medical_routines (person_id, medicine_name, dosage, frequency, time_of_day, notes)
+        VALUES (?, ?, ?, ?, ?, ?)
+    """, (person_id, medicine_name, dosage, frequency, time_of_day, notes))
+
+    routine_id = cursor.lastrowid
+    conn.commit()
+    conn.close()
+
+    return routine_id
+
+
+def get_medical_routines(person_id: int) -> List[Dict[str, Any]]:
+    """
+    Get all medical routines for a person.
+
+    Args:
+        person_id: ID of the person
+
+    Returns:
+        List of dicts with medical routine data
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT * FROM medical_routines
+        WHERE person_id = ?
+        ORDER BY time_of_day, medicine_name
+    """, (person_id,))
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    routines = []
+    for row in rows:
+        routines.append({
+            "id": row["id"],
+            "person_id": row["person_id"],
+            "medicine_name": row["medicine_name"],
+            "dosage": row["dosage"],
+            "frequency": row["frequency"],
+            "time_of_day": row["time_of_day"],
+            "notes": row["notes"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"]
+        })
+
+    return routines
+
+
+def get_all_medical_routines() -> List[Dict[str, Any]]:
+    """
+    Get all medical routines with person names.
+
+    Returns:
+        List of dicts with medical routine and person data
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT m.id, m.person_id, m.medicine_name, m.dosage, m.frequency,
+               m.time_of_day, m.notes, m.created_at, m.updated_at,
+               p.name as person_name
+        FROM medical_routines m
+        JOIN known_faces p ON m.person_id = p.id
+        ORDER BY p.name, m.time_of_day
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    routines = []
+    for row in rows:
+        routines.append({
+            "id": row["id"],
+            "person_id": row["person_id"],
+            "person_name": row["person_name"],
+            "medicine_name": row["medicine_name"],
+            "dosage": row["dosage"],
+            "frequency": row["frequency"],
+            "time_of_day": row["time_of_day"],
+            "notes": row["notes"],
+            "created_at": row["created_at"],
+            "updated_at": row["updated_at"]
+        })
+
+    return routines
+
+
+def update_medical_routine(routine_id: int, medicine_name: str = None, dosage: str = None,
+                           frequency: str = None, time_of_day: str = None, notes: str = None) -> bool:
+    """
+    Update a medical routine.
+
+    Args:
+        routine_id: ID of the routine to update
+        Other args: New values (None to keep existing)
+
+    Returns:
+        True if successful
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    # Get current values
+    cursor.execute("SELECT * FROM medical_routines WHERE id = ?", (routine_id,))
+    current = cursor.fetchone()
+
+    if not current:
+        conn.close()
+        return False
+
+    # Update with new values or keep existing
+    new_values = {
+        "medicine_name": medicine_name if medicine_name is not None else current["medicine_name"],
+        "dosage": dosage if dosage is not None else current["dosage"],
+        "frequency": frequency if frequency is not None else current["frequency"],
+        "time_of_day": time_of_day if time_of_day is not None else current["time_of_day"],
+        "notes": notes if notes is not None else current["notes"]
+    }
+
+    cursor.execute("""
+        UPDATE medical_routines
+        SET medicine_name = ?, dosage = ?, frequency = ?, time_of_day = ?, notes = ?, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    """, (new_values["medicine_name"], new_values["dosage"], new_values["frequency"],
+          new_values["time_of_day"], new_values["notes"], routine_id))
+
+    conn.commit()
+    conn.close()
+
+    return True
+
+
+def delete_medical_routine(routine_id: int) -> bool:
+    """
+    Delete a medical routine.
+
+    Args:
+        routine_id: ID of the routine to delete
+
+    Returns:
+        True if successful
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("DELETE FROM medical_routines WHERE id = ?", (routine_id,))
+    conn.commit()
+    conn.close()
+
+    return True

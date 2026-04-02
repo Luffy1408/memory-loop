@@ -343,24 +343,144 @@ if all_persons:
                     play_memory_audio(memory_text, 'en', get_voice_type())
                     st.info("Playing audio...")
 
+            # Delete person button
+            if st.button("🗑️ Delete Person", key=f"delete_{person['id']}", type="secondary"):
+                st.session_state[f"confirm_delete_{person['id']}"] = True
+
+            # Confirm delete dialog
+            if st.session_state.get(f"confirm_delete_{person['id']}", False):
+                st.warning(f"⚠️ Delete {person['name']} and all their data?")
+                col_del1, col_del2 = st.columns(2)
+                with col_del1:
+                    if st.button("✅ Yes, Delete", key=f"confirm_yes_{person['id']}"):
+                        # Delete face image file if exists
+                        if person.get("image_path") and os.path.exists(person["image_path"]):
+                            try:
+                                os.unlink(person["image_path"])
+                            except:
+                                pass
+                        database.delete_known_face(person["id"])
+                        st.session_state.known_faces = database.get_all_known_faces()
+                        st.session_state[f"confirm_delete_{person['id']}"] = False
+                        st.success(f"Deleted {person['name']}")
+                        st.rerun()
+                with col_del2:
+                    if st.button("❌ Cancel", key=f"confirm_no_{person['id']}"):
+                        st.session_state[f"confirm_delete_{person['id']}"] = False
+                        st.rerun()
+
             st.sidebar.markdown("---")
 else:
     st.sidebar.info("No persons saved yet. Record a video to add someone!")
+
+# Medical History Section
+st.sidebar.markdown("---")
+st.sidebar.title("💊 Medical History")
+
+# Select person for medical history
+if all_persons:
+    medical_person_options = {p["name"]: p["id"] for p in all_persons}
+    selected_person_name = st.sidebar.selectbox(
+        "Select Person",
+        options=list(medical_person_options.keys()),
+        key="medical_person_select"
+    )
+    selected_person_id = medical_person_options.get(selected_person_name)
+
+    if selected_person_id:
+        # Get current routines
+        routines = database.get_medical_routines(selected_person_id)
+
+        st.sidebar.markdown(f"**{len(routines)} medication(s) for {selected_person_name}**")
+
+        # Display existing routines
+        for routine in routines:
+            with st.sidebar.expander(f"📅 {routine['medicine_name']} - {routine['time_of_day'] or 'Any time'}"):
+                st.markdown(f"**Dosage:** {routine['dosage'] or 'Not specified'}")
+                st.markdown(f"**Frequency:** {routine['frequency'] or 'Not specified'}")
+                st.markdown(f"**Notes:** {routine['notes'] or 'None'}")
+
+                # Edit routine
+                if st.button("✏️ Edit", key=f"edit_routine_{routine['id']}"):
+                    st.session_state[f"editing_routine_{routine['id']}"] = True
+
+                if st.session_state.get(f"editing_routine_{routine['id']}", False):
+                    edit_medicine = st.text_input("Medicine Name", value=routine['medicine_name'], key=f"edit_med_{routine['id']}")
+                    edit_dosage = st.text_input("Dosage", value=routine['dosage'] or "", key=f"edit_dos_{routine['id']}")
+                    edit_freq = st.text_input("Frequency", value=routine['frequency'] or "", key=f"edit_freq_{routine['id']}")
+                    edit_time = st.text_input("Time of Day", value=routine['time_of_day'] or "", key=f"edit_time_{routine['id']}")
+                    edit_notes = st.text_input("Notes", value=routine['notes'] or "", key=f"edit_notes_{routine['id']}")
+
+                    col_save_edit, col_cancel_edit = st.columns(2)
+                    with col_save_edit:
+                        if st.button("💾 Save", key=f"save_edit_{routine['id']}"):
+                            database.update_medical_routine(
+                                routine['id'],
+                                medicine_name=edit_medicine,
+                                dosage=edit_dosage,
+                                frequency=edit_freq,
+                                time_of_day=edit_time,
+                                notes=edit_notes
+                            )
+                            st.session_state[f"editing_routine_{routine['id']}"] = False
+                            st.rerun()
+                    with col_cancel_edit:
+                        if st.button("Cancel", key=f"cancel_edit_{routine['id']}"):
+                            st.session_state[f"editing_routine_{routine['id']}"] = False
+                            st.rerun()
+
+                # Delete routine
+                if st.button("🗑️ Delete", key=f"del_routine_{routine['id']}"):
+                    database.delete_medical_routine(routine['id'])
+                    st.rerun()
+
+        # Add new medication
+        st.sidebar.markdown("### ➕ Add Medication")
+        with st.sidebar.form(key=f"add_med_{selected_person_id}"):
+            new_med_name = st.text_input("Medicine Name *", key=f"new_med_name_{selected_person_id}")
+            new_med_dosage = st.text_input("Dosage (e.g., 1 pill, 5ml)", key=f"new_med_dosage_{selected_person_id}")
+            new_med_freq = st.text_input("Frequency (e.g., Daily, Twice daily)", key=f"new_med_freq_{selected_person_id}")
+            new_med_time = st.text_input("Time of Day (e.g., Morning, 8:00 AM)", key=f"new_med_time_{selected_person_id}")
+            new_med_notes = st.text_input("Notes", key=f"new_med_notes_{selected_person_id}")
+
+            if st.form_submit_button("Add Medication"):
+                if new_med_name.strip():
+                    database.add_medical_routine(
+                        selected_person_id,
+                        new_med_name.strip(),
+                        new_med_dosage.strip(),
+                        new_med_freq.strip(),
+                        new_med_time.strip(),
+                        new_med_notes.strip()
+                    )
+                    st.success(f"Added {new_med_name} for {selected_person_name}")
+                    st.rerun()
+                else:
+                    st.error("Medicine name is required")
+else:
+    st.sidebar.info("Add persons first to manage medical history")
+
+# Global Medical Schedule View
+st.sidebar.markdown("---")
+st.sidebar.title("📋 Today's Schedule")
+if st.sidebar.button("View All Medications"):
+    st.session_state["show_all_medications"] = not st.session_state.get("show_all_medications", False)
+
+if st.session_state.get("show_all_medications", False):
+    st.sidebar.markdown("### All Medications")
+    all_routines = database.get_all_medical_routines()
+    if all_routines:
+        for routine in all_routines:
+            st.sidebar.markdown(f"**{routine['person_name']}**")
+            st.sidebar.markdown(f"- {routine['medicine_name']} ({routine['time_of_day'] or 'Any time'})")
+            st.sidebar.markdown(f"  Dosage: {routine['dosage'] or 'N/A'}")
+    else:
+        st.sidebar.info("No medications scheduled")
 
 # Voice settings
 st.sidebar.markdown("---")
 st.sidebar.title("🎤 Voice Settings")
 voice_option = st.sidebar.selectbox("Voice Type", ["Female (Jenny)", "Male (Guy)", "UK Female", "UK Male"], key="voice_type_select")
-
-# Helper function to get voice type from selection
-def get_voice_type():
-    voice_map = {
-        "Female (Jenny)": "female",
-        "Male (Guy)": "male",
-        "UK Female": "uk_female",
-        "UK Male": "uk_male"
-    }
-    return voice_map.get(voice_option, "female")
 
 # run = st.checkbox('Run')
 run = st.selectbox("", ("Pick an AI model to start!", "Face & person recognition", "Object detection", "Record Live Memory", "Record Video with Live Subtitles"))
@@ -547,6 +667,11 @@ elif run == "Record Video with Live Subtitles":
         st.session_state.auto_save_on_stop = False
     if "frame_errors" not in st.session_state:
         st.session_state.frame_errors = 0
+    # Persist face boxes between frames
+    if "last_face_boxes" not in st.session_state:
+        st.session_state.last_face_boxes = []  # List of (name, location, is_known, person_data)
+    if "face_missing_frames" not in st.session_state:
+        st.session_state.face_missing_frames = 0
 
     # API Key input
     api_key = st.text_input("Enter your Groq API key (get free at console.groq.com)", type="password", key="video_api_key")
@@ -585,6 +710,8 @@ elif run == "Record Video with Live Subtitles":
                 st.session_state.pending_face_data = None  # Reset pending face data
                 st.session_state.detected_person = None  # Reset detected person
                 st.session_state.frame_errors = 0  # Reset frame errors
+                st.session_state.last_face_boxes = []  # Reset face boxes
+                st.session_state.face_missing_frames = 0  # Reset missing frames counter
                 st.success("Recording started! Speak clearly into your microphone.")
 
             if stop_recording and st.session_state.is_recording:
@@ -753,6 +880,9 @@ elif run == "Record Video with Live Subtitles":
                     face_locations = face_recognition.face_locations(rgb_frame)
                     face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
 
+                    # Reset face boxes list when faces are detected
+                    current_face_boxes = []
+
                     # Check against known faces
                     for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
                         # Compare with known faces
@@ -773,19 +903,11 @@ elif run == "Record Video with Live Subtitles":
                                 st.session_state.show_person_popup = True
                                 st.session_state.popup_person_data = person_data
 
-                                # Draw green box for known face with "KNOWN" label
-                                cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
-                                cv2.putText(frame, f"KNOWN: {person_name}", (left, top - 10),
-                                           cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-
-                                # Add visual indicator on frame for popup notification
-                                cv2.putText(frame, f"Welcome back, {person_name}!", (10, frame.shape[0] - 100),
-                                           cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                                # Store face box for persistent display
+                                current_face_boxes.append((person_name, (left, top, right, bottom), True, person_data))
                             else:
-                                # Draw green box for known face
-                                cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
-                                cv2.putText(frame, person_name, (left, top - 10),
-                                           cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                                # Store face box for persistent display
+                                current_face_boxes.append((person_name, (left, top, right, bottom), True, None))
                         else:
                             # Unknown face detected - store for potential saving
                             if st.session_state.pending_face_data is None:
@@ -794,10 +916,36 @@ elif run == "Record Video with Live Subtitles":
                                     "face_frame": frame[top:bottom, left:right].copy(),
                                     "location": (top, right, bottom, left)
                                 }
-                            # Draw blue box for unknown face
-                            cv2.rectangle(frame, (left, top), (right, bottom), (255, 0, 0), 2)
-                            cv2.putText(frame, "Unknown", (left, top - 10),
-                                       cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
+                            # Store face box for persistent display
+                            current_face_boxes.append(("Unknown", (left, top, right, bottom), False, None))
+
+                    # Update persistent face boxes
+                    if current_face_boxes:
+                        st.session_state.last_face_boxes = current_face_boxes
+                        st.session_state.face_missing_frames = 0
+                    else:
+                        # No faces detected in this frame
+                        st.session_state.face_missing_frames += 1
+                        # Only clear boxes after 15 frames (~1.5 seconds) of no faces
+                        if st.session_state.face_missing_frames > 15:
+                            st.session_state.last_face_boxes = []
+                            st.session_state.detected_person = None
+
+                # Draw face boxes on every frame (persistent display)
+                for face_name, (left, top, right, bottom), is_known, person_data in st.session_state.last_face_boxes:
+                    if is_known:
+                        # Draw green box for known face
+                        cv2.rectangle(frame, (left, top), (right, bottom), (0, 255, 0), 2)
+                        cv2.putText(frame, f"KNOWN: {face_name}", (left, top - 10),
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+                        # Add welcome message
+                        cv2.putText(frame, f"Welcome back, {face_name}!", (10, frame.shape[0] - 100),
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+                    else:
+                        # Draw blue box for unknown face
+                        cv2.rectangle(frame, (left, top), (right, bottom), (255, 0, 0), 2)
+                        cv2.putText(frame, "Unknown", (left, top - 10),
+                                   cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 0, 0), 2)
 
                 # Capture audio chunk
                 audio_data = np.frombuffer(audio_stream.read(CHUNK * RECORD_SECONDS, exception_on_overflow=False), dtype=np.int16)
