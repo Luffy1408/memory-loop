@@ -246,5 +246,101 @@ def delete_known_face(person_id: int):
     conn.close()
 
 
+def get_all_conversations_with_persons() -> List[Dict[str, Any]]:
+    """
+    Get all conversations with associated person data.
+
+    Returns:
+        List of dicts with conversation and person data
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT c.id, c.transcription, c.video_path, c.recorded_at,
+               p.id as person_id, p.name as person_name, p.image_path as person_image
+        FROM conversations c
+        JOIN known_faces p ON c.person_id = p.id
+        ORDER BY c.recorded_at DESC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+
+    conversations = []
+    for row in rows:
+        conversations.append({
+            "id": row["id"],
+            "transcription": row["transcription"],
+            "video_path": row["video_path"],
+            "recorded_at": row["recorded_at"],
+            "person_id": row["person_id"],
+            "person_name": row["person_name"],
+            "person_image": row["person_image"]
+        })
+
+    return conversations
+
+
+def get_all_persons_with_conversation_count() -> List[Dict[str, Any]]:
+    """
+    Get all persons with their conversation count.
+
+    Returns:
+        List of dicts with person data and conversation count
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT p.id, p.name, p.image_path, p.created_at,
+               COUNT(c.id) as conversation_count
+        FROM known_faces p
+        LEFT JOIN conversations c ON p.id = c.person_id
+        GROUP BY p.id
+        ORDER BY p.created_at DESC
+    """)
+    rows = cursor.fetchall()
+    conn.close()
+
+    persons = []
+    for row in rows:
+        persons.append({
+            "id": row["id"],
+            "name": row["name"],
+            "image_path": row["image_path"],
+            "created_at": row["created_at"],
+            "conversation_count": row["conversation_count"]
+        })
+
+    return persons
+
+
+def get_all_conversations() -> List[Dict[str, Any]]:
+    """
+    Get all conversations from the database.
+
+    Returns:
+        List of dicts with keys: id, person_id, transcription, video_path, recorded_at
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM conversations ORDER BY recorded_at DESC")
+    rows = cursor.fetchall()
+    conn.close()
+
+    conversations = []
+    for row in rows:
+        conversations.append({
+            "id": row["id"],
+            "person_id": row["person_id"],
+            "transcription": row["transcription"],
+            "video_path": row["video_path"],
+            "recorded_at": row["recorded_at"]
+        })
+
+    return conversations
+
+
 # Initialize database when module is imported
 init_db()

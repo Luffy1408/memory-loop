@@ -10,3 +10,5 @@ groq
 streamlit-webrtc
 pyaudio
 Pillow
+gTTS
+pygame

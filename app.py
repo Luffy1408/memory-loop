@@ -14,6 +14,9 @@ import face_recognition
 import sqlite3
 import pickle
 from datetime import datetime
+from gtts import gTTS
+import pygame
+import threading
 
 
 @st.cache
@@ -141,6 +144,75 @@ def translate_to_hindi(text, client):
         return completion.choices[0].message.content.strip()
     except Exception as e:
         return text  # Return original text on error
+
+
+def text_to_speech(text, language='en'):
+    """
+    Convert text to speech and play through system audio (Bluetooth speaker).
+    Returns the audio file path if successful, None otherwise.
+    """
+    try:
+        # Create temporary audio file
+        temp_audio = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
+        temp_audio.close()
+
+        # Map language codes
+        lang_map = {
+            'en': 'en',
+            'en-US': 'en',
+            'en-GB': 'en',
+            'hi': 'hi',
+            'hindi': 'hi'
+        }
+        tts_lang = lang_map.get(language, 'en')
+
+        # Generate speech
+        tts = gTTS(text=text, lang=tts_lang, slow=False)
+        tts.save(temp_audio.name)
+
+        return temp_audio.name
+    except Exception as e:
+        st.error(f"TTS Error: {str(e)}")
+        return None
+
+
+def play_audio_async(audio_path):
+    """Play audio file asynchronously using pygame (plays through system default audio)."""
+    try:
+        pygame.mixer.init()
+        pygame.mixer.music.load(audio_path)
+        pygame.mixer.music.play()
+
+        # Wait for playback to finish
+        while pygame.mixer.music.get_busy():
+            pygame.time.Clock().tick(10)
+
+        pygame.mixer.quit()
+    except Exception as e:
+        print(f"Audio playback error: {e}")
+    finally:
+        # Clean up temp file
+        try:
+            if audio_path and os.path.exists(audio_path):
+                os.unlink(audio_path)
+        except:
+            pass
+
+
+def play_memory_audio(text, language='en'):
+    """
+    Convert text to speech and play automatically.
+    Plays through system default audio device (Bluetooth speaker if selected).
+    """
+    if not text or not text.strip():
+        return
+
+    audio_path = text_to_speech(text, language)
+    if audio_path:
+        # Play in background thread to not block UI
+        audio_thread = threading.Thread(target=play_audio_async, args=(audio_path,))
+        audio_thread.daemon = True
+        audio_thread.start()
 
 ###############
 ## Dashboard ##
@@ -363,6 +435,8 @@ elif run == "Record Video with Live Subtitles":
         st.session_state.popup_person_data = None
     if "auto_save_on_stop" not in st.session_state:
         st.session_state.auto_save_on_stop = False
+    if "frame_errors" not in st.session_state:
+        st.session_state.frame_errors = 0
 
     # API Key input
     api_key = st.text_input("Enter your Groq API key (get free at console.groq.com)", type="password", key="video_api_key")
@@ -399,6 +473,7 @@ elif run == "Record Video with Live Subtitles":
                 st.session_state.recorded_frames = []
                 st.session_state.audio_chunks = []
                 st.session_state.pending_face_data = None  # Reset pending face data
+                st.session_state.frame_errors = 0  # Reset frame errors
                 st.success("Recording started! Speak clearly into your microphone.")
 
             if stop_recording and st.session_state.is_recording:
@@ -465,10 +540,32 @@ elif run == "Record Video with Live Subtitles":
             subtitle_placeholder = st.empty()
             status_placeholder = st.empty()
 
-            # Open camera
-            cap = cv2.VideoCapture(camera_index)
+            # Open camera with retry
+            cap = None
+            max_retries = 3
+            for retry in range(max_retries):
+                cap = cv2.VideoCapture(camera_index)
+                if cap.isOpened():
+                    break
+                st.warning(f"Camera {camera_index} not available, retrying... ({retry + 1}/{max_retries})")
+                import time as time_module
+                time_module.sleep(1)
+
+            if not cap or not cap.isOpened():
+                st.error(f"Cannot open camera {camera_index}. Please check if camera is connected and not in use by another application.")
+                st.session_state.is_recording = False
+                st.stop()
+
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
+            # Test camera read
+            ret_test, frame_test = cap.read()
+            if not ret_test:
+                st.error("Camera opened but failed to read frames. Try closing other apps using the camera.")
+                cap.release()
+                st.session_state.is_recording = False
+                st.stop()
 
             # Audio setup
             try:
@@ -510,8 +607,13 @@ elif run == "Record Video with Live Subtitles":
                 # Capture video frame
                 ret, frame = cap.read()
                 if not ret:
-                    st.error("Failed to capture video frame")
-                    break
+                    frame_errors = st.session_state.get("frame_errors", 0) + 1
+                    st.session_state.frame_errors = frame_errors
+                    if frame_errors > 10:
+                        st.error("Camera stopped responding. Please restart the recording.")
+                        break
+                    continue  # Skip this frame and try again
+                st.session_state.frame_errors = 0
 
                 # Face detection every 10 frames for performance
                 if frame_count % 10 == 0:
@@ -730,6 +832,37 @@ elif run == "Record Video with Live Subtitles":
                     full_text = " ".join([t["text"] for t in st.session_state.full_transcription])
                     st.write(full_text)
 
+                    # Auto-play transcription as audio
+                    st.subheader("🔊 Audio Playback")
+                    st.info("Playing memory audio through system speaker (Bluetooth if connected)...")
+
+                    # Determine language from transcription
+                    audio_lang = 'en'
+                    if any(t.get("original") for t in st.session_state.full_transcription):
+                        audio_lang = st.session_state.get("subtitle_language", "English").lower()
+                        if audio_lang == "hindi":
+                            audio_lang = 'hi'
+
+                    # Generate audio file
+                    audio_file_path = text_to_speech(full_text, audio_lang)
+
+                    if audio_file_path:
+                        # Play audio automatically
+                        play_memory_audio(full_text, audio_lang)
+
+                        # Also provide audio player for manual replay
+                        st.audio(audio_file_path, format="audio/mp3")
+
+                        # Replay button
+                        col_replay1, col_replay2 = st.columns(2)
+                        with col_replay1:
+                            if st.button("🔊 Replay Audio", key="replay_audio"):
+                                play_memory_audio(full_text, audio_lang)
+                                st.success("Playing audio...")
+                        with col_replay2:
+                            # Language selection for replay
+                            replay_lang = st.selectbox("Language", ["English", "Hindi"], key="replay_lang")
+
                     # Save as memory option
                     st.subheader("Save as Memory")
                     col_save1, col_save2 = st.columns(2)
@@ -756,8 +889,19 @@ elif run == "Record Video with Live Subtitles":
                         with open(transcription_path, "w") as f:
                             f.write(full_text)
 
+                        # Save audio file
+                        audio_save_path = os.path.join(memories_dir, f"{memory_name.replace(' ', '_')}_{timestamp}.mp3")
+                        if audio_file_path and os.path.exists(audio_file_path):
+                            shutil.copy(audio_file_path, audio_save_path)
+
                         st.success(f"Memory saved! Video: {video_filename}")
                         st.info(f"Transcription saved to: {transcription_path}")
+                        if audio_file_path:
+                            st.info(f"Audio saved to: {audio_save_path}")
+
+                        # Play confirmation audio
+                        confirmation_text = f"Memory saved for {memory_name}. {full_text}"
+                        play_memory_audio(confirmation_text, audio_lang)
 
                 # Clean up temp file
                 try:
@@ -776,6 +920,17 @@ elif run == "Record Video with Live Subtitles":
             # Get last conversation for this person
             last_conversation = database.get_last_conversation_for_person(person["id"])
 
+            # Auto-play welcome message and last memory
+            welcome_text = f"Welcome back, {person['name']}!"
+            if last_conversation:
+                memory_text = f"Your last memory: {last_conversation['transcription']}"
+                full_speech = f"{welcome_text}. {memory_text}"
+            else:
+                full_speech = welcome_text
+
+            # Play TTS automatically when person is recognized
+            play_memory_audio(full_speech, 'en')
+
             # Define dialog function
             @st.dialog(f"Person Recognized: {person['name']}")
             def show_person_dialog():
@@ -791,6 +946,12 @@ elif run == "Record Video with Live Subtitles":
                     st.subheader("Last Conversation")
                     st.write(last_conversation["transcription"])
                     st.caption(f"Recorded on: {last_conversation['recorded_at']}")
+
+                    # Button to replay memory audio
+                    if st.button("🔊 Replay Memory Audio", key="replay_person_memory"):
+                        memory_audio_text = f"{person['name']}'s memory: {last_conversation['transcription']}"
+                        play_memory_audio(memory_audio_text, 'en')
+                        st.success("Playing memory audio...")
                 else:
                     st.info("No previous conversations recorded.")
 
