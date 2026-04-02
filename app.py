@@ -260,27 +260,24 @@ def play_memory_audio(text, language='en', voice_type='female'):
 ###############
 
 st.set_page_config(
-    page_title="DigiMemoir - Roche Dementia Hackathon",
+    page_title="Memory Loop - Roche Dementia Hackathon",
     page_icon="⚡",
     layout="wide",
     initial_sidebar_state="expanded",
     menu_items={
-        'Get Help': 'https://github.com/nathanyaqueby/roche-dementia-hackathon',
-        'Report a bug': "https://github.com/nathanyaqueby/roche-dementia-hackathon",
-        'About': "Our mission is simple. To help people with dementia remember daily objects and their loved ones,"
-                 " DigiMemoir takes pictures of objects & people and stores the stories associated with them. "
+        'About': "Memory Loop helps people with dementia remember daily objects and their loved ones. "
+                 "Memory Loop captures moments with objects & people and stores the stories associated with them. "
                  "Whenever the person focuses on an object or person, the digital memory will start talking about it, "
                  "reminding the person of the history behind that object or person. Developed during the Roche"
                  " Dementia Hackathon Challenge by Team 4 (Women in AI and Robotics)."
     }
 )
-st.title("DigiMemoir")
-st.markdown("Welcome to **_DigiMemoir_**, a virtual person and object recognition system that"
+st.title("Memory Loop")
+st.markdown("Welcome to **_Memory Loop_**, a virtual person and object recognition system that"
             " enables you to **attach memories** to any everyday item. Using AI and Augmented Reality, we help"
-            " dementia & Alzheimer patients remember past experiences and sentiments. "
-            "Check out our documentation on ([GitHub](https://github.com/nathanyaqueby/roche-dementia-hackathon))")
+            " dementia & Alzheimer patients remember past experiences and sentiments.")
 
-st.sidebar.image("DigiMemoir.png", width=300)
+st.sidebar.image("MemoryLoop.png", width=300)
 st.sidebar.title("Upload a new memory")
 
 with st.sidebar.form(key='Form1'):
@@ -506,12 +503,12 @@ elif run in ["Face & person recognition", "Object detection"]:
     side = max((100 - width) / 2, 0.01)
 
     if run == "Face & person recognition":
-        video_file = open('DigiMemoir.mp4', 'rb')
-        audio_file = open("gaby_digimemoir.mp3", "rb")
+        video_file = open('MemoryLoop.mp4', 'rb')
+        audio_file = open("gaby_memoryloop.mp3", "rb")
         face = True
     else:
-        video_file = open('DigiMemoir_Object.mp4', 'rb')
-        audio_file = open("micro_digimemoir.mp3", "rb")
+        video_file = open('MemoryLoop_Object.mp4', 'rb')
+        audio_file = open("micro_memoryloop.mp3", "rb")
         face = False
     video_bytes = video_file.read()
 
@@ -542,31 +539,31 @@ elif run in ["Face & person recognition", "Object detection"]:
         tab0, tab1, tab2, tab3 = col2.tabs(["Gaby", "Banu", "Queby", "Urska"])
 
         with tab0:
-            st.image("digimemoir_pics/0.png")
+            st.image("memoryloop_pics/0.png")
 
         with tab1:
-            st.image("digimemoir_pics/1.png")
+            st.image("memoryloop_pics/1.png")
 
         with tab2:
-            st.image("digimemoir_pics/2.png")
+            st.image("memoryloop_pics/2.png")
 
         with tab3:
-            st.image("digimemoir_pics/3.png")
+            st.image("memoryloop_pics/3.png")
 
     else:
         tab4, tab5, tab6, tab8 = col2.tabs(["Microwave", "Stove", "Fridge", "Spoon"])
 
         with tab4:
-            st.image("digimemoir_pics/4.png")
+            st.image("memoryloop_pics/4.png")
 
         with tab5:
-            st.image("digimemoir_pics/5.png")
+            st.image("memoryloop_pics/5.png")
 
         with tab6:
-            st.image("digimemoir_pics/6.png")
+            st.image("memoryloop_pics/6.png")
 
         with tab8:
-            st.image("digimemoir_pics/8.png")
+            st.image("memoryloop_pics/8.png")
 
 elif run == "Record Live Memory":
     st.header("Record a Live Memory")

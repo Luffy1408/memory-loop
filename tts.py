@@ -68,7 +68,7 @@ if __name__ == "__main__":
     # Test the TTS with a sample text
     text_en = "This is a microwave, you can use it to heat your food. Would you like me to give you a step by step instruction on how to use it?"
 
-    output = text_to_speech(text_en, "micro_digimemoir.mp3", language='en', voice_type='female')
+    output = text_to_speech(text_en, "micro_memoryloop.mp3", language='en', voice_type='female')
 
     if output:
         print(f"Audio saved to: {output}")

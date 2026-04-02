@@ -11,13 +11,11 @@ from datetime import datetime
 database.init_db()
 
 st.set_page_config(
-    page_title="Memory Gallery - DigiMemoir",
+    page_title="Memory Gallery - Memory Loop",
     page_icon="📚",
     layout="wide",
     menu_items={
-        'Get Help': 'https://github.com/nathanyaqueby/roche-dementia-hackathon',
-        'Report a bug': "https://github.com/nathanyaqueby/roche-dementia-hackathon",
-        'About': "DigiMemoir Memory Gallery - View all saved persons and conversations."
+        'About': "Memory Loop Gallery - View all saved persons and conversations."
     }
 )
 
@@ -56,9 +54,9 @@ with tab1:
                             try:
                                 col.image(person["image_path"], width=150)
                             except:
-                                col.image("DigiMemoir.png", width=150)
+                                col.image("MemoryLoop.png", width=150)
                         else:
-                            col.image("DigiMemoir.png", width=150)
+                            col.image("MemoryLoop.png", width=150)
 
                         # Person info
                         col.subheader(f"👤 {person['name']}")

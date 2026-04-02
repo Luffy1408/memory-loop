@@ -1,5 +1,5 @@
 """
-Database module for DigiMemoir face recognition and conversation storage.
+Database module for Memory Loop face recognition and conversation storage.
 Uses SQLite for structured storage of known faces and conversation history.
 """
 
@@ -10,7 +10,7 @@ import os
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-DATABASE_PATH = os.path.join(os.path.dirname(__file__), "digimemoir.db")
+DATABASE_PATH = os.path.join(os.path.dirname(__file__), "memoryloop.db")
 
 
 def get_connection():

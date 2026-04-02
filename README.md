@@ -1,17 +1,19 @@
-# DigiMemoir 👵👴🧓
-Our mission is simple: To help people with dementia remember daily objects and their loved ones. Our POC takes pictures of objects & people and stores the stories associated with them. Whenever the person focuses on an object or person, the digital memory will start talking about it, reminding the person of the history behind that object or person.
+# Memory Loop 👵👴🧓
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_red.svg)](https://nathanyaqueby-roche-dementia-hackathon-app-lxtmjh.streamlit.app)
+Memory Loop helps people with dementia remember daily objects and their loved ones. The app captures moments with objects & people and stores the stories associated with them. Whenever the person focuses on an object or person, the digital memory will start talking about it, reminding the person of the history behind that object or person.
 
-![](digimemoir_readme.png)
-
-Developed during the Roche Dementia Hackathon Challenge by Team 4 (Women in AI and Robotics).
+![](memoryloop_readme.png)
 
 ## 📌 How to run
-- Go to [this link](https://nathanyaqueby-roche-dementia-hackathon-app-lxtmjh.streamlitapp.com/)
-- Pick either facial or object recognition
-- Start analyzing and indentifying unique memories attached
-- Feel free to add new memories into the database
+```bash
+streamlit run app.py
+```
+
+## Features
+- **Facial Recognition** - Identify and remember loved ones
+- **Object Recognition** - Recognize everyday objects and their stories
+- **Memory Storage** - Save and retrieve personal memories
+- **Text-to-Speech** - Hear stories about people and objects
 
 ## ✨ Team
 - Gabriela Cortés
