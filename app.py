@@ -20,6 +20,16 @@ import threading
 import asyncio
 
 
+# Load custom CSS for Crystal Glass UI
+def load_css():
+    with open(os.path.join(os.path.dirname(__file__), "styles.css"), encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+
+# Apply custom styling
+load_css()
+
+
 @st.cache
 class ObjectDetection:
     def __init__(self, out_file="testing.avi"):
@@ -272,13 +282,24 @@ st.set_page_config(
                  " Dementia Hackathon Challenge by Team 4 (Women in AI and Robotics)."
     }
 )
-st.title("Memory Loop")
-st.markdown("Welcome to **_Memory Loop_**, a virtual person and object recognition system that"
-            " enables you to **attach memories** to any everyday item. Using AI and Augmented Reality, we help"
-            " dementia & Alzheimer patients remember past experiences and sentiments.")
+st.title("✨ Memory Loop")
+
+# Crystal glass card for main intro
+st.markdown("""
+<div class="glass-intro-card">
+    <p class="glass-intro-text">
+        Welcome to <strong class="glass-brand">Memory Loop</strong>, a compassionate companion that helps preserve and recall precious moments.
+        Using advanced AI, we help people with dementia remember their loved ones and the stories that matter most.
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 st.sidebar.image("MemoryLoop.png", width=300)
-st.sidebar.title("Upload a new memory")
+st.sidebar.markdown("""
+<div class="glass-section-header">
+    <h3 class="glass-section-title">📤 Upload Memory</h3>
+</div>
+""", unsafe_allow_html=True)
 
 with st.sidebar.form(key='Form1'):
     uploaded_file = st.file_uploader("Choose an image")
@@ -292,7 +313,11 @@ with st.sidebar.form(key='Form1'):
 
 # Person Management Section
 st.sidebar.markdown("---")
-st.sidebar.title("👥 Manage Persons")
+st.sidebar.markdown("""
+<div class="glass-section-header sage">
+    <h3 class="glass-section-title">👥 Manage Persons</h3>
+</div>
+""", unsafe_allow_html=True)
 
 # Initialize database
 import database
@@ -372,7 +397,11 @@ else:
 
 # Medical History Section
 st.sidebar.markdown("---")
-st.sidebar.title("💊 Medical History")
+st.sidebar.markdown("""
+<div class="glass-section-header terracotta">
+    <h3 class="glass-section-title">💊 Medical History</h3>
+</div>
+""", unsafe_allow_html=True)
 
 # Select person for medical history
 if all_persons:
@@ -459,7 +488,11 @@ else:
 
 # Global Medical Schedule View
 st.sidebar.markdown("---")
-st.sidebar.title("📋 Today's Schedule")
+st.sidebar.markdown("""
+<div class="glass-section-header lavender">
+    <h3 class="glass-section-title">📋 Today's Schedule</h3>
+</div>
+""", unsafe_allow_html=True)
 if st.sidebar.button("View All Medications"):
     st.session_state["show_all_medications"] = not st.session_state.get("show_all_medications", False)
 
@@ -476,11 +509,15 @@ if st.session_state.get("show_all_medications", False):
 
 # Voice settings
 st.sidebar.markdown("---")
-st.sidebar.title("🎤 Voice Settings")
+st.sidebar.markdown("""
+<div class="glass-section-header teal">
+    <h3 class="glass-section-title">🎤 Voice Settings</h3>
+</div>
+""", unsafe_allow_html=True)
 voice_option = st.sidebar.selectbox("Voice Type", ["Female (Jenny)", "Male (Guy)", "UK Female", "UK Male"], key="voice_type_select")
 
 # run = st.checkbox('Run')
-run = st.selectbox("", ("Pick an AI model to start!", "Face & person recognition", "Object detection", "Record Live Memory", "Record Video with Live Subtitles"))
+run = st.selectbox("🎯 Choose your mode:", ("Pick an AI model to start!", "Face & person recognition", "Object detection", "Record Live Memory", "Record Video with Live Subtitles"))
 
 if submitted and run not in ["Face & person recognition", "Object detection"]:
     st.subheader('New memory unlocked!')
@@ -566,8 +603,14 @@ elif run in ["Face & person recognition", "Object detection"]:
             st.image("memoryloop_pics/8.png")
 
 elif run == "Record Live Memory":
-    st.header("Record a Live Memory")
-    st.markdown("Record a conversation or story and transcribe it using AI. Perfect for capturing memories with loved ones.")
+    st.markdown("""
+    <div class="glass-content-card sage">
+        <h1 class="glass-page-title">🎙️ Record a Live Memory</h1>
+        <p class="glass-page-description">
+            Record a conversation or story and transcribe it using AI. Perfect for capturing memories with loved ones.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # API Key input
     api_key = st.text_input("Enter your Groq API key (get free at console.groq.com)", type="password", key="audio_api_key")
@@ -601,7 +644,11 @@ elif run == "Record Live Memory":
                 st.write(transcription)
 
                 # Save as memory section
-                st.subheader("Step 3: Save as Memory")
+                st.markdown("""
+                <div class="glass-section-header terracotta">
+                    <h3 class="glass-section-title">💾 Step 3: Save as Memory</h3>
+                </div>
+                """, unsafe_allow_html=True)
                 memory_name = st.text_input("Person's name", key="record_name")
                 memory_category = st.radio("Category", ("Person", "Object", "Landscape"), key="record_category")
 
@@ -629,8 +676,15 @@ elif run == "Record Live Memory":
         """)
 
 elif run == "Record Video with Live Subtitles":
-    st.header("Record Video with Live Subtitles")
-    st.markdown("Record video while speech is transcribed and displayed as subtitles in real-time. Perfect for capturing memories with context.")
+    st.markdown("""
+    <div class="glass-content-card lavender">
+        <h1 class="glass-page-title">🎬 Record Video with Live Subtitles</h1>
+        <p class="glass-page-description">
+            Record video while speech is transcribed and displayed as subtitles in real-time.
+            Perfect for capturing memories with context.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Initialize database
     import database
@@ -681,10 +735,14 @@ elif run == "Record Video with Live Subtitles":
         col1, col2 = st.columns([1, 2])
 
         with col1:
-            st.subheader("Controls")
+            st.markdown("""
+            <div class="glass-controls-card">
+                <h3 class="glass-card-title">⚙️ Controls</h3>
+            </div>
+            """, unsafe_allow_html=True)
 
             # Language selector for subtitles
-            st.subheader("Subtitle Language")
+            st.markdown("**Subtitle Language**")
             subtitle_language = st.radio(
                 "Choose language",
                 ["English", "Hindi"],
@@ -772,7 +830,11 @@ elif run == "Record Video with Live Subtitles":
         camera_index = st.sidebar.selectbox("Select Camera", [0, 1], index=0)
 
         if st.session_state.is_recording:
-            st.subheader("Live Preview")
+            st.markdown("""
+            <div class="glass-section-header terracotta">
+                <h3 class="glass-section-title">🎥 Live Preview</h3>
+            </div>
+            """, unsafe_allow_html=True)
             # Create columns for video and save button
             col_video, col_save = st.columns([4, 1])
             with col_video:
@@ -1086,7 +1148,11 @@ elif run == "Record Video with Live Subtitles":
 
             # Create video from recorded frames
             if st.session_state.recorded_frames:
-                st.subheader("Recording Complete!")
+                st.markdown("""
+                <div class="glass-section-header sage">
+                    <h3 class="glass-section-title">✅ Recording Complete!</h3>
+                </div>
+                """, unsafe_allow_html=True)
 
                 # Create output video
                 output_path = tempfile.mktemp(suffix=".avi")
@@ -1102,12 +1168,20 @@ elif run == "Record Video with Live Subtitles":
 
                 # Display full transcription
                 if st.session_state.full_transcription:
-                    st.subheader("Full Transcription")
+                    st.markdown("""
+                    <div class="glass-section-header default">
+                        <h3 class="glass-section-title">📝 Full Transcription</h3>
+                    </div>
+                    """, unsafe_allow_html=True)
                     full_text = " ".join([t["text"] for t in st.session_state.full_transcription])
                     st.write(full_text)
 
                     # Auto-play transcription as audio
-                    st.subheader("🔊 Audio Playback")
+                    st.markdown("""
+                    <div class="glass-section-header teal">
+                        <h3 class="glass-section-title">🔊 Audio Playback</h3>
+                    </div>
+                    """, unsafe_allow_html=True)
                     st.info("Playing memory audio through system speaker (Bluetooth if connected)...")
 
                     # Determine language from transcription
@@ -1138,7 +1212,11 @@ elif run == "Record Video with Live Subtitles":
                             replay_lang = st.selectbox("Language", ["English", "Hindi"], key="replay_lang")
 
                     # Save as memory option
-                    st.subheader("Save as Memory")
+                    st.markdown("""
+                    <div class="glass-section-header terracotta">
+                        <h3 class="glass-section-title">💾 Save as Memory</h3>
+                    </div>
+                    """, unsafe_allow_html=True)
                     col_save1, col_save2 = st.columns(2)
                     with col_save1:
                         memory_name = st.text_input("Name", key="video_memory_name")

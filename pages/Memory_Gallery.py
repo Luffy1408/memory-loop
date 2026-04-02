@@ -7,6 +7,17 @@ import database
 import os
 from datetime import datetime
 
+
+# Load custom CSS for Crystal Glass UI
+def load_css():
+    css_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "styles.css")
+    with open(css_path, encoding="utf-8") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+
+# Apply custom styling
+load_css()
+
 # Initialize database
 database.init_db()
 
@@ -20,7 +31,39 @@ st.set_page_config(
 )
 
 st.title("📚 Memory Gallery")
-st.markdown("Browse all saved persons and their conversation memories.")
+st.markdown("""
+<div style="
+    position: relative;
+    background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 100%);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255,255,255,0.4);
+    border-radius: 28px;
+    padding: 1.8rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 10px 45px rgba(107,93,78,0.08), inset 0 1px 1px rgba(255,255,255,0.3);
+    overflow: hidden;
+">
+    <div style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+    "></div>
+    <p style="
+        font-size: 1.05rem;
+        color: #4A4540;
+        margin: 0;
+        line-height: 1.75;
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    ">
+        Browse all saved persons and their conversation memories. Click on a person to view their
+        recorded memories and stories.
+    </p>
+</div>
+""", unsafe_allow_html=True)
 
 # Navigation tabs
 tab1, tab2 = st.tabs(["👥 People", "💬 All Conversations"])
@@ -29,7 +72,39 @@ tab1, tab2 = st.tabs(["👥 People", "💬 All Conversations"])
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 with tab1:
-    st.header("Saved People")
+    st.markdown("""
+    <div style="
+        position: relative;
+        background: linear-gradient(135deg, rgba(143,166,134,0.15) 0%, rgba(106,155,154,0.1) 100%);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px;
+        padding: 1.8rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(255,255,255,0.35);
+        box-shadow: 0 8px 35px rgba(107,93,78,0.07);
+        overflow: hidden;
+    ">
+        <div style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        "></div>
+        <h2 style="
+            background: linear-gradient(135deg, #6B5D4E 0%, #5E7554 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            font-family: 'Cormorant Garamond', 'Georgia', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        ">👥 Saved People</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Get all persons with conversation count
     persons = database.get_all_persons_with_conversation_count()
@@ -37,7 +112,7 @@ with tab1:
     if not persons:
         st.info("No people saved yet. Start recording to add people to your memory gallery!")
     else:
-        st.write(f"**Total: {len(persons)} people saved**")
+        st.markdown(f"**Total: {len(persons)} people saved**")
 
         # Display persons in a grid
         cols_per_row = 3
@@ -122,7 +197,39 @@ with tab1:
                             st.video(conv['video_path'])
 
 with tab2:
-    st.header("All Conversations")
+    st.markdown("""
+    <div style="
+        position: relative;
+        background: linear-gradient(135deg, rgba(165,153,179,0.15) 0%, rgba(196,132,106,0.1) 100%);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-radius: 24px;
+        padding: 1.8rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid rgba(255,255,255,0.35);
+        box-shadow: 0 8px 35px rgba(107,93,78,0.07);
+        overflow: hidden;
+    ">
+        <div style="
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        "></div>
+        <h2 style="
+            background: linear-gradient(135deg, #6B5D4E 0%, #A599B3 50%, #C4846A 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin: 0;
+            font-family: 'Cormorant Garamond', 'Georgia', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        ">💬 All Conversations</h2>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Get all conversations with person data
     conversations = database.get_all_conversations_with_persons()
@@ -170,8 +277,40 @@ with tab2:
                     st.video(conv['video_path'])
 
 # Statistics at the bottom
-st.divider()
-st.header("📊 Statistics")
+st.markdown("---")
+st.markdown("""
+<div style="
+    position: relative;
+    background: linear-gradient(135deg, rgba(201,169,98,0.15) 0%, rgba(165,107,82,0.1) 100%);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: 24px;
+    padding: 1.8rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.35);
+    box-shadow: 0 8px 35px rgba(107,93,78,0.07);
+    overflow: hidden;
+">
+    <div style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    "></div>
+    <h2 style="
+        background: linear-gradient(135deg, #6B5D4E 0%, #C9A962 50%, #A66B52 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin: 0;
+        font-family: 'Cormorant Garamond', 'Georgia', serif;
+        font-size: 1.8rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    ">📊 Statistics</h2>
+</div>
+""", unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns(3)
 

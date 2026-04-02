@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(streamlit run:*)",
+      "Bash(python -m streamlit run app.py --server.headless true)",
+      "Bash(timeout 5)"
+    ]
+  }
+}
