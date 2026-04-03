@@ -2,7 +2,6 @@ import streamlit as st
 import cv2
 import torch
 from torch import hub
-from time import time
 import numpy as np
 import os
 from groq import Groq
@@ -18,6 +17,26 @@ import edge_tts
 import pygame
 import threading
 import asyncio
+import time
+
+st.set_page_config(
+    page_title="Memory Loop - Roche Dementia Hackathon",
+    page_icon="🧠",
+    layout="wide",
+    initial_sidebar_state="collapsed",
+    menu_items={
+        "About": "Memory Loop helps people with dementia remember daily objects and their loved ones."
+    }
+)
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Groq API key from environment variable
+# Set GROQ_API_KEY environment variable before running
+# ═══════════════════════════════════════════════════════════════════════════
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    st.error("GROQ_API_KEY environment variable not set. Please set it before running.")
+    st.stop()
 
 
 # Load custom CSS for Crystal Glass UI
@@ -27,10 +46,88 @@ def load_css():
 
 
 # Apply custom styling
+
+placeholder = st.empty()
+
+with placeholder.container():
+    st.markdown("""
+    <style>
+    .custom-loader-wrap {
+        position: fixed;
+        inset: 0;
+        z-index: 999999;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(180deg, #FBBF24 0%, #FEF3C7 22%, #F8F6EC 100%);
+    }
+
+    .custom-loader-title {
+        font-size: 3rem;
+        font-weight: 800;
+        color: #001636;
+        margin-bottom: 24px;
+        font-family: Inter, sans-serif;
+    }
+
+    .custom-loader-spinner {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 3px solid rgba(0, 22, 54, 0.15);
+        border-top: 3px solid #001636;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    </style>
+
+    <div class="custom-loader-wrap">
+        <div class="custom-loader-title">Memory Loop</div>
+        <div class="custom-loader-spinner"></div>
+    </div>
+    """, unsafe_allow_html=True)
+
+time.sleep(1.2)
+placeholder.empty()
+
 load_css()
 
+st.markdown("""
+<style>
+html, body, [data-testid="stAppViewContainer"], .stApp {
+    background: linear-gradient(180deg, #FBBF24 0%, #FEF3C7 22%, #F8F6EC 100%) !important;
+}
 
-@st.cache
+header[data-testid="stHeader"] {
+    background: transparent !important;
+}
+
+[data-testid="stToolbar"] {
+    right: 1rem;
+}
+
+.stSpinner > div {
+    border-top-color: #001636 !important;
+    border-right-color: rgba(0,22,54,0.15) !important;
+    border-bottom-color: rgba(0,22,54,0.15) !important;
+    border-left-color: rgba(0,22,54,0.15) !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+st.markdown("""
+<div class="top-page-nav">
+    <a href="/" target="_self" class="nav-pill">🏠 Home</a>
+    <a href="/Memory_Gallery" target="_self" class="nav-pill">🖼️ Memory Gallery</a>
+</div>
+""", unsafe_allow_html=True)
+
+@st.cache_data
 class ObjectDetection:
     def __init__(self, out_file="testing.avi"):
         self.out_file = out_file
@@ -101,12 +198,12 @@ class ObjectDetection:
         ret, frame = player.read()  # Read the first frame.
         frame_window = st.image([])
         while True:  # Run until stream is out of frames
-            start_time = time()  # We would like to measure the FPS.
+            start_time = time.time()  # We would like to measure the FPS.
             ret, frame = player.read()
             assert ret
             results = self.score_frame(frame)  # Score the Frame
             frame = self.plot_boxes(results, frame)  # Plot the boxes.
-            end_time = time()
+            end_time = time.time()
             fps = 1/np.round(end_time - start_time, 3)  # Measure the FPS.
             print(f"Frames Per Second : {fps}")
             # cv2.imshow('frame', frame)
@@ -269,35 +366,130 @@ def play_memory_audio(text, language='en', voice_type='female'):
 ## Dashboard ##
 ###############
 
-st.set_page_config(
-    page_title="Memory Loop - Roche Dementia Hackathon",
-    page_icon="⚡",
-    layout="wide",
-    initial_sidebar_state="expanded",
-    menu_items={
-        'About': "Memory Loop helps people with dementia remember daily objects and their loved ones. "
-                 "Memory Loop captures moments with objects & people and stores the stories associated with them. "
-                 "Whenever the person focuses on an object or person, the digital memory will start talking about it, "
-                 "reminding the person of the history behind that object or person. Developed during the Roche"
-                 " Dementia Hackathon Challenge by Team 4 (Women in AI and Robotics)."
-    }
-)
-st.title("✨ Memory Loop")
 
-# Crystal glass card for main intro
+# ═══════════════════════════════════════════════════════════════════════════
+# HERO SECTION - Unmind Style (Yellow Background)
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+
 st.markdown("""
-<div class="glass-intro-card">
-    <p class="glass-intro-text">
-        Welcome to <strong class="glass-brand">Memory Loop</strong>, a compassionate companion that helps preserve and recall precious moments.
-        Using advanced AI, we help people with dementia remember their loved ones and the stories that matter most.
-    </p>
+<div style="
+    background: rgba(255, 230, 140, 0.55);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 32px;
+    padding: 4rem 2rem 2.5rem;
+    margin: 2rem auto 0 auto;
+    max-width: 1100px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+">
+    <div style="
+        position: absolute;
+        inset: 0;
+        background-image: url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23001636' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\");
+        opacity: 0.6;
+        pointer-events: none;
+    "></div>
+    <div style="position: relative; z-index: 1; max-width: 900px; margin: 0 auto; text-align: center;">
+        <h1 style="
+            font-size: 3.5rem;
+            font-weight: 800;
+            color: #001636;
+            margin: 0 0 1rem 0;
+            letter-spacing: -0.03em;
+            line-height: 1.1;
+        ">
+            Memory Loop
+        </h1>
+        <p style="
+            font-size: 1.25rem;
+            color: #1A3A5C;
+            margin: 0 0 2rem 0;
+            line-height: 1.6;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        ">
+            A compassionate companion that helps people with dementia remember their
+            <em style="font-style: italic; font-weight: 700; color: #001636;">loved ones</em>
+            and the stories that matter most.
+        </p>
+        <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;">
+            <span style="
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: white;
+                padding: 0.5rem 1rem;
+                border-radius: 9999px;
+                font-weight: 500;
+                color: #001636;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            ">🧠 Face Recognition</span>
+            <span style="
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: white;
+                padding: 0.5rem 1rem;
+                border-radius: 9999px;
+                font-weight: 500;
+                color: #001636;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            ">📷 Object Detection</span>
+            <span style="
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: white;
+                padding: 0.5rem 1rem;
+                border-radius: 9999px;
+                font-weight: 500;
+                color: #001636;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            ">🎙️ Live Recording</span>
+            <span style="
+                display: inline-flex;
+                align-items: center;
+                gap: 0.5rem;
+                background: white;
+                padding: 0.5rem 1rem;
+                border-radius: 9999px;
+                font-weight: 500;
+                color: #001636;
+                box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            ">🎬 Video Subtitles</span>
+        </div>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
-st.sidebar.image("MemoryLoop.png", width=300)
+# ═══════════════════════════════════════════════════════════════════════════
+# MODE SELECTOR - Pill Buttons
+# ═══════════════════════════════════════════════════════════════════════════
+
+
+# Sidebar with Upload Section
+st.sidebar.image("MemoryLoop.png", width=240)
+
 st.sidebar.markdown("""
-<div class="glass-section-header">
-    <h3 class="glass-section-title">📤 Upload Memory</h3>
+<div style="
+    background: #FEF3C7;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #FBBF24;
+">
+    <h3 style="color: #001636; margin: 0 0 0.5rem 0; font-size: 0.9rem; font-weight: 600;">
+        📤 Upload Memory
+    </h3>
+    <p style="color: #1A3A5C; margin: 0; font-size: 0.85rem;">
+        Add photos and stories
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -314,8 +506,19 @@ with st.sidebar.form(key='Form1'):
 # Person Management Section
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
-<div class="glass-section-header sage">
-    <h3 class="glass-section-title">👥 Manage Persons</h3>
+<div style="
+    background: #D1FAE5;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #10B981;
+">
+    <h3 style="color: #001636; margin: 0 0 0.5rem 0; font-size: 0.9rem; font-weight: 600;">
+        👥 Manage Persons
+    </h3>
+    <p style="color: #065F46; margin: 0; font-size: 0.85rem;">
+        View and edit saved people
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -398,8 +601,19 @@ else:
 # Medical History Section
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
-<div class="glass-section-header terracotta">
-    <h3 class="glass-section-title">💊 Medical History</h3>
+<div style="
+    background: #FEE2E2;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #F87171;
+">
+    <h3 style="color: #001636; margin: 0 0 0.5rem 0; font-size: 0.9rem; font-weight: 600;">
+        💊 Medical History
+    </h3>
+    <p style="color: #991B1B; margin: 0; font-size: 0.85rem;">
+        Track medications and routines
+    </p>
 </div>
 """, unsafe_allow_html=True)
 
@@ -489,8 +703,19 @@ else:
 # Global Medical Schedule View
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
-<div class="glass-section-header lavender">
-    <h3 class="glass-section-title">📋 Today's Schedule</h3>
+<div style="
+    background: #EDE9FE;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #8B5CF6;
+">
+    <h3 style="color: #001636; margin: 0 0 0.5rem 0; font-size: 0.9rem; font-weight: 600;">
+        📋 Today's Schedule
+    </h3>
+    <p style="color: #5B21B6; margin: 0; font-size: 0.85rem;">
+        View all medications
+    </p>
 </div>
 """, unsafe_allow_html=True)
 if st.sidebar.button("View All Medications"):
@@ -510,14 +735,69 @@ if st.session_state.get("show_all_medications", False):
 # Voice settings
 st.sidebar.markdown("---")
 st.sidebar.markdown("""
-<div class="glass-section-header teal">
-    <h3 class="glass-section-title">🎤 Voice Settings</h3>
+<div style="
+    background: #CCFBF1;
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid #14B8A6;
+">
+    <h3 style="color: #001636; margin: 0 0 0.5rem 0; font-size: 0.9rem; font-weight: 600;">
+        🎤 Voice Settings
+    </h3>
+    <p style="color: #0F766E; margin: 0; font-size: 0.85rem;">
+        Choose TTS voice type
+    </p>
 </div>
 """, unsafe_allow_html=True)
 voice_option = st.sidebar.selectbox("Voice Type", ["Female (Jenny)", "Male (Guy)", "UK Female", "UK Male"], key="voice_type_select")
 
-# run = st.checkbox('Run')
-run = st.selectbox("🎯 Choose your mode:", ("Pick an AI model to start!", "Face & person recognition", "Object detection", "Record Live Memory", "Record Video with Live Subtitles"))
+# Initialize session state for mode selection
+if "selected_mode" not in st.session_state:
+    st.session_state.selected_mode = None
+
+# Mode selection buttons
+st.markdown("""
+<div style="
+    background: white;
+    padding: 1.5rem;
+    border-radius: 20px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+">
+    <p style="color: #001636; font-weight: 600; margin: 0 0 1rem 0; font-size: 0.9rem;">
+        🎯 Choose your mode
+    </p>
+</div>
+""", unsafe_allow_html=True)
+
+# Create buttons in a grid
+col1, col2 = st.columns(2)
+
+with col1:
+    face_btn = st.button("🧠 Face & Person Recognition", use_container_width=True, type="primary" if st.session_state.selected_mode == "Face & person recognition" else "secondary")
+    if face_btn:
+        st.session_state.selected_mode = "Face & person recognition"
+        st.rerun()
+
+    live_btn = st.button("🎙️ Record Live Memory", use_container_width=True, type="primary" if st.session_state.selected_mode == "Record Live Memory" else "secondary")
+    if live_btn:
+        st.session_state.selected_mode = "Record Live Memory"
+        st.rerun()
+
+with col2:
+    obj_btn = st.button("📷 Object Detection", use_container_width=True, type="primary" if st.session_state.selected_mode == "Object detection" else "secondary")
+    if obj_btn:
+        st.session_state.selected_mode = "Object detection"
+        st.rerun()
+
+    video_btn = st.button("🎬 Video with Live Subtitles", use_container_width=True, type="primary" if st.session_state.selected_mode == "Record Video with Live Subtitles" else "secondary")
+    if video_btn:
+        st.session_state.selected_mode = "Record Video with Live Subtitles"
+        st.rerun()
+
+# Set run variable based on session state
+run = st.session_state.selected_mode if st.session_state.selected_mode else "Pick an AI model to start!"
 
 if submitted and run not in ["Face & person recognition", "Object detection"]:
     st.subheader('New memory unlocked!')
@@ -604,85 +884,115 @@ elif run in ["Face & person recognition", "Object detection"]:
 
 elif run == "Record Live Memory":
     st.markdown("""
-    <div class="glass-content-card sage">
-        <h1 class="glass-page-title">🎙️ Record a Live Memory</h1>
-        <p class="glass-page-description">
-            Record a conversation or story and transcribe it using AI. Perfect for capturing memories with loved ones.
-        </p>
+    <div style="
+        background: linear-gradient(135deg, #10B981 0%, #14B8A6 100%);
+        padding: 3rem 2rem;
+        margin: -2rem -2rem 2rem -2rem;
+        border-radius: 0 0 24px 24px;
+        position: relative;
+        overflow: hidden;
+    ">
+        <div style="position: relative; z-index: 1; max-width: 800px; margin: 0 auto; text-align: center;">
+            <h1 style="
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: white;
+                margin: 0 0 0.75rem 0;
+                letter-spacing: -0.02em;
+            ">
+                🎙️ Record a Live Memory
+            </h1>
+            <p style="font-size: 1.1rem; color: rgba(255,255,255,0.9); margin: 0; line-height: 1.6;">
+                Record a conversation or story and transcribe it using AI.
+                Perfect for capturing memories with loved ones.
+            </p>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # API Key input
-    api_key = st.text_input("Enter your Groq API key (get free at console.groq.com)", type="password", key="audio_api_key")
-    if not api_key:
-        st.warning("Please enter your Groq API key to enable transcription.")
-        st.markdown("📝 **Get a free API key at [console.groq.com](https://console.groq.com)**")
-    else:
-        client = Groq(api_key=api_key)
+    # Initialize Groq client with hardcoded API key
+    client = Groq(api_key=GROQ_API_KEY)
 
-        # Audio recording section
-        st.subheader("Step 1: Record Your Memory")
-        st.info("Click the microphone button below to start recording. Click again to stop.")
+    # Audio recording section
+    st.subheader("Step 1: Record Your Memory")
+    st.info("Click the microphone button below to start recording. Click again to stop.")
 
-        audio_value = st.audio_input("Record your memory")
+    audio_value = st.audio_input("Record your memory")
 
-        if audio_value:
-            st.success("Recording captured!")
-            st.audio(audio_value)
+    if audio_value:
+        st.success("Recording captured!")
+        st.audio(audio_value)
 
-            # Save to temp file for transcription
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f:
-                f.write(audio_value.getvalue())
-                temp_path = f.name
+        # Save to temp file for transcription
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as f:
+            f.write(audio_value.getvalue())
+            temp_path = f.name
 
-            st.subheader("Step 2: Transcribe")
-            if st.button("Transcribe Recording", type="primary"):
-                with st.spinner("Transcribing with Whisper AI..."):
-                    transcription = transcribe_audio(temp_path, client)
+        st.subheader("Step 2: Transcribe")
+        if st.button("Transcribe Recording", type="primary"):
+            with st.spinner("Transcribing with Whisper AI..."):
+                transcription = transcribe_audio(temp_path, client)
 
-                st.subheader("Transcription Result")
-                st.write(transcription)
+            st.subheader("Transcription Result")
+            st.write(transcription)
 
-                # Save as memory section
-                st.markdown("""
-                <div class="glass-section-header terracotta">
-                    <h3 class="glass-section-title">💾 Step 3: Save as Memory</h3>
-                </div>
-                """, unsafe_allow_html=True)
-                memory_name = st.text_input("Person's name", key="record_name")
-                memory_category = st.radio("Category", ("Person", "Object", "Landscape"), key="record_category")
+            # Save as memory section
+            st.markdown("""
+            <div style="
+                background: #FEE2E2;
+                border-radius: 12px;
+                padding: 0.75rem 1rem;
+                margin-bottom: 1rem;
+                border-left: 4px solid #F87171;
+            ">
+                <h3 style="color: #001636; margin: 0; font-size: 1rem; font-weight: 600;">
+                    💾 Step 3: Save as Memory
+                </h3>
+            </div>
+            """, unsafe_allow_html=True)
+            memory_name = st.text_input("Person's name", key="record_name")
+            memory_category = st.radio("Category", ("Person", "Object", "Landscape"), key="record_category")
 
-                if st.button("Save Memory", key="save_memory"):
-                    st.success(f"Memory saved for {memory_name}!")
-                    st.markdown(f"**Category:** {memory_category}")
-                    st.markdown(f"**Transcription:** {transcription}")
+            if st.button("Save Memory", key="save_memory"):
+                st.success(f"Memory saved for {memory_name}!")
+                st.markdown(f"**Category:** {memory_category}")
+                st.markdown(f"**Transcription:** {transcription}")
 
-            # Clean up temp file
-            try:
-                os.unlink(temp_path)
-            except:
-                pass
-
-    # Instructions
-    with st.expander("How to get a free Groq API key"):
-        st.markdown("""
-        1. Go to [console.groq.com](https://console.groq.com)
-        2. Sign up for a free account
-        3. Navigate to API Keys section
-        4. Create a new API key
-        5. Copy and paste it above
-
-        The free tier includes generous rate limits for Whisper transcription!
-        """)
+        # Clean up temp file
+        try:
+            os.unlink(temp_path)
+        except:
+            pass
 
 elif run == "Record Video with Live Subtitles":
     st.markdown("""
-    <div class="glass-content-card lavender">
-        <h1 class="glass-page-title">🎬 Record Video with Live Subtitles</h1>
-        <p class="glass-page-description">
-            Record video while speech is transcribed and displayed as subtitles in real-time.
-            Perfect for capturing memories with context.
-        </p>
+    <div style="
+        background: linear-gradient(135deg, rgba(124, 92, 255, 0.18) 0%, rgba(251, 191, 36, 0.18) 100%);
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+        border: 1px solid rgba(255,255,255,0.35);
+        padding: 3rem 2rem;
+        margin: 2rem auto 2rem auto;
+        max-width: 1100px;
+        border-radius: 24px;
+        position: relative;
+        overflow: hidden;
+    ">
+        <div style="position: relative; z-index: 1; max-width: 800px; margin: 0 auto; text-align: center;">
+            <h1 style="
+                font-size: 2.5rem;
+                font-weight: 800;
+                color: white;
+                margin: 0 0 0.75rem 0;
+                letter-spacing: -0.02em;
+            ">
+                🎬 Record Video with Live Subtitles
+            </h1>
+            <p style="font-size: 1.1rem; color: rgba(255,255,255,0.9); margin: 0; line-height: 1.6;">
+                Record video while speech is transcribed and displayed as subtitles in real-time.
+                Perfect for capturing memories with context.
+            </p>
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -724,115 +1034,127 @@ elif run == "Record Video with Live Subtitles":
     if "face_missing_frames" not in st.session_state:
         st.session_state.face_missing_frames = 0
 
-    # API Key input
-    api_key = st.text_input("Enter your Groq API key (get free at console.groq.com)", type="password", key="video_api_key")
+    # Initialize Groq client with hardcoded API key
+    client = Groq(api_key=GROQ_API_KEY)
 
-    if not api_key:
-        st.warning("Please enter your Groq API key to enable real-time transcription.")
-        st.markdown("📝 **Get a free API key at [console.groq.com](https://console.groq.com)**")
-    else:
-        client = Groq(api_key=api_key)
-        col1, col2 = st.columns([1, 2])
+    col1, col2 = st.columns([1, 2])
 
-        with col1:
-            st.markdown("""
-            <div class="glass-controls-card">
-                <h3 class="glass-card-title">⚙️ Controls</h3>
-            </div>
-            """, unsafe_allow_html=True)
+    with col1:
+        st.markdown("""
+        <div style="
+            background: white;
+            border: 1px solid #E5E5E5;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        ">
+            <h3 style="font-size: 1.25rem; font-weight: 600; color: #001636; margin: 0 0 1rem 0;">
+                ⚙️ Controls
+            </h3>
+        </div>
+        """, unsafe_allow_html=True)
 
-            # Language selector for subtitles
-            st.markdown("**Subtitle Language**")
-            subtitle_language = st.radio(
-                "Choose language",
-                ["English", "Hindi"],
-                index=0 if st.session_state.subtitle_language == "English" else 1,
-                key="subtitle_lang_radio",
-                disabled=st.session_state.is_recording
-            )
-            st.session_state.subtitle_language = subtitle_language
+        # Language selector for subtitles
+        st.markdown("**Subtitle Language**")
+        subtitle_language = st.radio(
+            "Choose language",
+            ["English", "Hindi"],
+            index=0 if st.session_state.subtitle_language == "English" else 1,
+            key="subtitle_lang_radio",
+            disabled=st.session_state.is_recording
+        )
+        st.session_state.subtitle_language = subtitle_language
 
-            # Recording buttons - never disabled
-            start_recording = st.button("🎬 Start Recording", type="primary")
-            stop_recording = st.button("⏹️ Stop Recording")
+        # Recording buttons - never disabled
+        start_recording = st.button("🎬 Start Recording", type="primary")
+        stop_recording = st.button("⏹️ Stop Recording")
 
-            if start_recording and not st.session_state.is_recording:
-                st.session_state.is_recording = True
-                st.session_state.subtitle_buffer = ""
-                st.session_state.full_transcription = []
-                st.session_state.recorded_frames = []
-                st.session_state.audio_chunks = []
-                st.session_state.pending_face_data = None  # Reset pending face data
-                st.session_state.detected_person = None  # Reset detected person
-                st.session_state.frame_errors = 0  # Reset frame errors
-                st.session_state.last_face_boxes = []  # Reset face boxes
-                st.session_state.face_missing_frames = 0  # Reset missing frames counter
-                st.success("Recording started! Speak clearly into your microphone.")
+        if start_recording and not st.session_state.is_recording:
+            st.session_state.is_recording = True
+            st.session_state.subtitle_buffer = ""
+            st.session_state.full_transcription = []
+            st.session_state.recorded_frames = []
+            st.session_state.audio_chunks = []
+            st.session_state.pending_face_data = None  # Reset pending face data
+            st.session_state.detected_person = None  # Reset detected person
+            st.session_state.frame_errors = 0  # Reset frame errors
+            st.session_state.last_face_boxes = []  # Reset face boxes
+            st.session_state.face_missing_frames = 0  # Reset missing frames counter
+            st.success("Recording started! Speak clearly into your microphone.")
 
-            if stop_recording and st.session_state.is_recording:
-                st.session_state.is_recording = False
+        if stop_recording and st.session_state.is_recording:
+            st.session_state.is_recording = False
 
-                # Save conversation to the detected person (known face) if available
-                if st.session_state.get("detected_person") and st.session_state.detected_person:
-                    # A known person was recognized - save conversation to their existing record
-                    person_id = st.session_state.detected_person["id"]
-                    person_name = st.session_state.detected_person["name"]
+            # Save conversation to the detected person (known face) if available
+            if st.session_state.get("detected_person") and st.session_state.detected_person:
+                # A known person was recognized - save conversation to their existing record
+                person_id = st.session_state.detected_person["id"]
+                person_name = st.session_state.detected_person["name"]
 
-                    if st.session_state.full_transcription:
-                        full_text = " ".join([t["text"] for t in st.session_state.full_transcription])
-                        if full_text.strip():
-                            database.save_conversation(person_id, full_text)
-                            st.success(f"Conversation saved for {person_name}!")
-                            st.info(f"Last conversation: '{full_text[:100]}...'")
-                        else:
-                            st.info(f"No conversation recorded for {person_name}.")
+                if st.session_state.full_transcription:
+                    full_text = " ".join([t["text"] for t in st.session_state.full_transcription])
+                    if full_text.strip():
+                        database.save_conversation(person_id, full_text)
+                        st.success(f"Conversation saved for {person_name}!")
+                        st.info(f"Last conversation: '{full_text[:100]}...'")
                     else:
                         st.info(f"No conversation recorded for {person_name}.")
+                else:
+                    st.info(f"No conversation recorded for {person_name}.")
 
-                    # Update known faces in session state
-                    st.session_state.known_faces = database.get_all_known_faces()
-                    st.session_state.detected_person = None
+                # Update known faces in session state
+                st.session_state.known_faces = database.get_all_known_faces()
+                st.session_state.detected_person = None
 
-                # If unknown face was detected, save as new person
-                elif st.session_state.pending_face_data:
-                    # Save face to database automatically
-                    face_encoding = st.session_state.pending_face_data["face_encoding"]
-                    face_frame = st.session_state.pending_face_data["face_frame"]
+            # If unknown face was detected, save as new person
+            elif st.session_state.pending_face_data:
+                # Save face to database automatically
+                face_encoding = st.session_state.pending_face_data["face_encoding"]
+                face_frame = st.session_state.pending_face_data["face_frame"]
 
-                    # Save face image
-                    faces_dir = os.path.join(os.path.dirname(__file__), "faces")
-                    os.makedirs(faces_dir, exist_ok=True)
-                    timestamp = int(time())
-                    face_image_path = os.path.join(faces_dir, f"Unknown_{timestamp}.jpg")
-                    cv2.imwrite(face_image_path, face_frame)
+                # Save face image
+                faces_dir = os.path.join(os.path.dirname(__file__), "faces")
+                os.makedirs(faces_dir, exist_ok=True)
+                timestamp = int(time.time())
+                face_image_path = os.path.join(faces_dir, f"Unknown_{timestamp}.jpg")
+                cv2.imwrite(face_image_path, face_frame)
 
-                    # Insert into database with temporary name
-                    person_id = database.save_known_face(f"Unknown_{timestamp}", face_encoding, face_image_path)
+                # Insert into database with temporary name
+                person_id = database.save_known_face(f"Unknown_{timestamp}", face_encoding, face_image_path)
 
-                    # Save last conversation if available
-                    if st.session_state.full_transcription:
-                        full_text = " ".join([t["text"] for t in st.session_state.full_transcription])
-                        if full_text.strip():
-                            database.save_conversation(person_id, full_text)
-                            st.info(f"Face and conversation saved! Last conversation: '{full_text[:100]}...'")
-                        else:
-                            st.info("Face saved! No conversation was recorded.")
+                # Save last conversation if available
+                if st.session_state.full_transcription:
+                    full_text = " ".join([t["text"] for t in st.session_state.full_transcription])
+                    if full_text.strip():
+                        database.save_conversation(person_id, full_text)
+                        st.info(f"Face and conversation saved! Last conversation: '{full_text[:100]}...'")
                     else:
                         st.info("Face saved! No conversation was recorded.")
+                else:
+                    st.info("Face saved! No conversation was recorded.")
 
-                    # Update known faces in session state
-                    st.session_state.known_faces = database.get_all_known_faces()
-                    st.session_state.pending_face_data = None
+                # Update known faces in session state
+                st.session_state.known_faces = database.get_all_known_faces()
+                st.session_state.pending_face_data = None
 
-                st.success("Recording stopped!")
+            st.success("Recording stopped!")
 
         # Camera selection
         camera_index = st.sidebar.selectbox("Select Camera", [0, 1], index=0)
 
         if st.session_state.is_recording:
             st.markdown("""
-            <div class="glass-section-header terracotta">
-                <h3 class="glass-section-title">🎥 Live Preview</h3>
+            <div style="
+                background: #FEE2E2;
+                border-radius: 12px;
+                padding: 0.75rem 1rem;
+                margin-bottom: 1rem;
+                border-left: 4px solid #F87171;
+                display: inline-block;
+            ">
+                <h3 style="color: #001636; margin: 0; font-size: 1rem; font-weight: 600;">
+                    🎥 Live Preview
+                </h3>
             </div>
             """, unsafe_allow_html=True)
             # Create columns for video and save button
@@ -911,7 +1233,7 @@ elif run == "Record Video with Live Subtitles":
             audio = pyaudio.PyAudio()
             audio_stream = audio.open(format=FORMAT, channels=CHANNELS, rate=RATE, input=True, frames_per_buffer=CHUNK)
 
-            recording_start = time()
+            recording_start = time.time()
             frame_count = 0
             face_frame_count = 0
             audio_buffer = []
@@ -1045,7 +1367,7 @@ elif run == "Record Video with Live Subtitles":
                                         st.session_state.subtitle_buffer = translated_text
                                         last_subtitle = translated_text
                                         st.session_state.full_transcription.append({
-                                            "timestamp": time() - recording_start,
+                                            "timestamp": time.time() - recording_start,
                                             "text": translated_text,
                                             "original": original_text
                                         })
@@ -1053,7 +1375,7 @@ elif run == "Record Video with Live Subtitles":
                                         st.session_state.subtitle_buffer = original_text
                                         last_subtitle = original_text
                                         st.session_state.full_transcription.append({
-                                            "timestamp": time() - recording_start,
+                                            "timestamp": time.time() - recording_start,
                                             "text": original_text
                                         })
                                 # Keep last subtitle if no speech detected in this chunk
@@ -1109,7 +1431,7 @@ elif run == "Record Video with Live Subtitles":
                                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
 
                 # Add recording indicator
-                elapsed = int(time() - recording_start)
+                elapsed = int(time.time() - recording_start)
                 cv2.circle(frame, (30, 30), 15, (0, 0, 255), -1)
                 cv2.putText(frame, f"REC {elapsed}s", (55, 35), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 255), 2)
 
@@ -1149,8 +1471,16 @@ elif run == "Record Video with Live Subtitles":
             # Create video from recorded frames
             if st.session_state.recorded_frames:
                 st.markdown("""
-                <div class="glass-section-header sage">
-                    <h3 class="glass-section-title">✅ Recording Complete!</h3>
+                <div style="
+                    background: #D1FAE5;
+                    border-radius: 12px;
+                    padding: 0.75rem 1rem;
+                    margin-bottom: 1rem;
+                    border-left: 4px solid #10B981;
+                ">
+                    <h3 style="color: #001636; margin: 0; font-size: 1rem; font-weight: 600;">
+                        ✅ Recording Complete!
+                    </h3>
                 </div>
                 """, unsafe_allow_html=True)
 
@@ -1169,8 +1499,16 @@ elif run == "Record Video with Live Subtitles":
                 # Display full transcription
                 if st.session_state.full_transcription:
                     st.markdown("""
-                    <div class="glass-section-header default">
-                        <h3 class="glass-section-title">📝 Full Transcription</h3>
+                    <div style="
+                        background: white;
+                        border: 1px solid #E5E5E5;
+                        border-radius: 12px;
+                        padding: 0.75rem 1rem;
+                        margin-bottom: 1rem;
+                    ">
+                        <h3 style="color: #001636; margin: 0; font-size: 1rem; font-weight: 600;">
+                            📝 Full Transcription
+                        </h3>
                     </div>
                     """, unsafe_allow_html=True)
                     full_text = " ".join([t["text"] for t in st.session_state.full_transcription])
@@ -1178,8 +1516,16 @@ elif run == "Record Video with Live Subtitles":
 
                     # Auto-play transcription as audio
                     st.markdown("""
-                    <div class="glass-section-header teal">
-                        <h3 class="glass-section-title">🔊 Audio Playback</h3>
+                    <div style="
+                        background: #CCFBF1;
+                        border-radius: 12px;
+                        padding: 0.75rem 1rem;
+                        margin-bottom: 1rem;
+                        border-left: 4px solid #14B8A6;
+                    ">
+                        <h3 style="color: #001636; margin: 0; font-size: 1rem; font-weight: 600;">
+                            🔊 Audio Playback
+                        </h3>
                     </div>
                     """, unsafe_allow_html=True)
                     st.info("Playing memory audio through system speaker (Bluetooth if connected)...")
@@ -1213,8 +1559,16 @@ elif run == "Record Video with Live Subtitles":
 
                     # Save as memory option
                     st.markdown("""
-                    <div class="glass-section-header terracotta">
-                        <h3 class="glass-section-title">💾 Save as Memory</h3>
+                    <div style="
+                        background: #FEE2E2;
+                        border-radius: 12px;
+                        padding: 0.75rem 1rem;
+                        margin-bottom: 1rem;
+                        border-left: 4px solid #F87171;
+                    ">
+                        <h3 style="color: #001636; margin: 0; font-size: 1rem; font-weight: 600;">
+                            💾 Save as Memory
+                        </h3>
                     </div>
                     """, unsafe_allow_html=True)
                     col_save1, col_save2 = st.columns(2)
@@ -1228,7 +1582,7 @@ elif run == "Record Video with Live Subtitles":
                         memories_dir = os.path.join(os.path.dirname(__file__), "memories")
                         os.makedirs(memories_dir, exist_ok=True)
 
-                        timestamp = int(time())
+                        timestamp = int(time.time())
                         video_filename = f"{memory_name.replace(' ', '_')}_{timestamp}.avi"
                         video_save_path = os.path.join(memories_dir, video_filename)
 
@@ -1347,7 +1701,7 @@ elif run == "Record Video with Live Subtitles":
                             # Save face image
                             faces_dir = os.path.join(os.path.dirname(__file__), "faces")
                             os.makedirs(faces_dir, exist_ok=True)
-                            timestamp = int(time())
+                            timestamp = int(time.time())
                             face_image_path = os.path.join(faces_dir, f"{person_name.replace(' ', '_')}_{timestamp}.jpg")
                             cv2.imwrite(face_image_path, face_frame)
 

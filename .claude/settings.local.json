@@ -3,7 +3,11 @@
     "allow": [
       "Bash(streamlit run:*)",
       "Bash(python -m streamlit run app.py --server.headless true)",
-      "Bash(timeout 5)"
+      "Bash(timeout 5)",
+      "WebFetch(domain:unmind.com)",
+      "Bash(python -m py_compile app.py)",
+      "Bash(taskkill /f /im streamlit.exe)",
+      "Bash(taskkill /f /im python.exe)"
     ]
   }
 }

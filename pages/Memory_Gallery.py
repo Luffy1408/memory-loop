@@ -18,6 +18,36 @@ def load_css():
 # Apply custom styling
 load_css()
 
+st.markdown("""
+<div class="top-page-nav">
+    <a href="/" target="_self" class="nav-pill">🏠 Home</a>
+    <a href="/Memory_Gallery" target="_self" class="nav-pill active-nav">🖼️ Memory Gallery</a>
+</div>
+""", unsafe_allow_html=True)
+
+
+st.markdown("""
+<style>
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0.5rem;
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: rgba(255,255,255,0.75);
+    border: 1px solid rgba(0,22,54,0.08);
+    border-radius: 14px 14px 0 0;
+    padding: 0.6rem 1rem;
+    color: #4B5563;
+}
+
+.stTabs [aria-selected="true"] {
+    background: #001636 !important;
+    color: white !important;
+    border-color: #001636 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
 # Initialize database
 database.init_db()
 
@@ -33,35 +63,40 @@ st.set_page_config(
 st.title("📚 Memory Gallery")
 st.markdown("""
 <div style="
+    background: rgba(255, 230, 140, 0.55);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 32px;
+    padding: 3rem 2rem;
+    margin: 1.5rem auto 2rem auto;
+    max-width: 1100px;
     position: relative;
-    background: linear-gradient(135deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 100%);
-    backdrop-filter: blur(25px);
-    -webkit-backdrop-filter: blur(25px);
-    border: 1px solid rgba(255,255,255,0.4);
-    border-radius: 28px;
-    padding: 1.8rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 10px 45px rgba(107,93,78,0.08), inset 0 1px 1px rgba(255,255,255,0.3);
     overflow: hidden;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.08);
 ">
     <div style="
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+        inset: 0;
+        background-image: url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23001636' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\");
+        opacity: 0.6;
+        pointer-events: none;
     "></div>
-    <p style="
-        font-size: 1.05rem;
-        color: #4A4540;
-        margin: 0;
-        line-height: 1.75;
-        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-    ">
-        Browse all saved persons and their conversation memories. Click on a person to view their
-        recorded memories and stories.
-    </p>
+    <div style="position: relative; z-index: 1; max-width: 800px; margin: 0 auto; text-align: center;">
+        <h1 style="
+            font-size: 3rem;
+            font-weight: 800;
+            color: #001636;
+            margin: 0 0 1rem 0;
+            letter-spacing: -0.03em;
+        ">
+            Memory Gallery
+        </h1>
+        <p style="font-size: 1.1rem; color: #1A3A5C; margin: 0; line-height: 1.6;">
+            Browse all saved persons and their conversation memories.
+            Click on a person to view their recorded memories and stories.
+        </p>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -74,35 +109,18 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 with tab1:
     st.markdown("""
     <div style="
-        position: relative;
-        background: linear-gradient(135deg, rgba(143,166,134,0.15) 0%, rgba(106,155,154,0.1) 100%);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: rgba(255,255,255,0.72);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0,22,54,0.08);
         border-radius: 24px;
-        padding: 1.8rem;
+        padding: 1.2rem 1.5rem
         margin-bottom: 1.5rem;
-        border: 1px solid rgba(255,255,255,0.35);
-        box-shadow: 0 8px 35px rgba(107,93,78,0.07);
-        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     ">
-        <div style="
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-        "></div>
-        <h2 style="
-            background: linear-gradient(135deg, #6B5D4E 0%, #5E7554 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0;
-            font-family: 'Cormorant Garamond', 'Georgia', serif;
-            font-size: 1.8rem;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-        ">👥 Saved People</h2>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: #001636; margin: 0;">
+            👥 Saved People
+        </h2>
     </div>
     """, unsafe_allow_html=True)
 
@@ -199,35 +217,16 @@ with tab1:
 with tab2:
     st.markdown("""
     <div style="
-        position: relative;
-        background: linear-gradient(135deg, rgba(165,153,179,0.15) 0%, rgba(196,132,106,0.1) 100%);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
+        background: rgba(255,255,255,0.72);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(0,22,54,0.08);
         border-radius: 24px;
-        padding: 1.8rem;
-        margin-bottom: 1.5rem;
-        border: 1px solid rgba(255,255,255,0.35);
-        box-shadow: 0 8px 35px rgba(107,93,78,0.07);
-        overflow: hidden;
+        padding: 1.2rem 1.5rem
     ">
-        <div style="
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-        "></div>
-        <h2 style="
-            background: linear-gradient(135deg, #6B5D4E 0%, #A599B3 50%, #C4846A 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin: 0;
-            font-family: 'Cormorant Garamond', 'Georgia', serif;
-            font-size: 1.8rem;
-            font-weight: 600;
-            letter-spacing: -0.01em;
-        ">💬 All Conversations</h2>
+        <h2 style="font-size: 1.5rem; font-weight: 700; color: #001636; margin: 0;">
+            💬 All Conversations
+        </h2>
     </div>
     """, unsafe_allow_html=True)
 
@@ -280,35 +279,14 @@ with tab2:
 st.markdown("---")
 st.markdown("""
 <div style="
-    position: relative;
-    background: linear-gradient(135deg, rgba(201,169,98,0.15) 0%, rgba(165,107,82,0.1) 100%);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-radius: 24px;
-    padding: 1.8rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid rgba(255,255,255,0.35);
-    box-shadow: 0 8px 35px rgba(107,93,78,0.07);
-    overflow: hidden;
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    border-radius: 20px;
+    padding: 1.5rem;
+    border-left: 4px solid #FBBF24;
 ">
-    <div style="
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 1px;
-        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    "></div>
-    <h2 style="
-        background: linear-gradient(135deg, #6B5D4E 0%, #C9A962 50%, #A66B52 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin: 0;
-        font-family: 'Cormorant Garamond', 'Georgia', serif;
-        font-size: 1.8rem;
-        font-weight: 600;
-        letter-spacing: -0.01em;
-    ">📊 Statistics</h2>
+    <h2 style="font-size: 1.5rem; font-weight: 700; color: #001636; margin: 0 0 1rem 0;">
+        📊 Statistics
+    </h2>
 </div>
 """, unsafe_allow_html=True)
 
