@@ -380,177 +380,48 @@ st.markdown("""
 <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;500;600;700&family=Raleway:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 """, unsafe_allow_html=True)
 
-# SVG Icons for features (no emojis for accessibility)
-BRAIN_ICON = '''<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.54"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.54"/></svg>'''
-CAMERA_ICON = '''<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>'''
-MIC_ICON = '''<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>'''
-VIDEO_ICON = '''<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2" ry="2"/></svg>'''
-
-st.markdown(f"""
-<div style="
-    font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-">
+# Hero Section HTML with embedded SVGs
+st.markdown("""
+<div style="font-family: 'Raleway', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
     <!-- Ambient Background Blobs for Glassmorphism Depth -->
-    <div style="
-        position: fixed;
-        top: 10%;
-        left: 5%;
-        width: 300px;
-        height: 300px;
-        background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%);
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 0;
-        animation: blobFloat 20s ease-in-out infinite;
-    "></div>
-    <div style="
-        position: fixed;
-        top: 60%;
-        right: 10%;
-        width: 400px;
-        height: 400px;
-        background: radial-gradient(circle, rgba(249, 115, 22, 0.12) 0%, transparent 70%);
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 0;
-        animation: blobFloat 25s ease-in-out infinite reverse;
-    "></div>
+    <div style="position: fixed; top: 10%; left: 5%; width: 300px; height: 300px; background: radial-gradient(circle, rgba(37, 99, 235, 0.15) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: 0; animation: blobFloat 20s ease-in-out infinite;"></div>
+    <div style="position: fixed; top: 60%; right: 10%; width: 400px; height: 400px; background: radial-gradient(circle, rgba(249, 115, 22, 0.12) 0%, transparent 70%); border-radius: 50%; pointer-events: none; z-index: 0; animation: blobFloat 25s ease-in-out infinite reverse;"></div>
 
     <!-- Hero Card with Glassmorphism -->
-    <div style="
-        background: rgba(255, 255, 255, 0.75);
-        backdrop-filter: blur(20px);
-        -webkit-backdrop-filter: blur(20px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        border-radius: 24px;
-        padding: 3rem 2rem 2.5rem;
-        margin: 1.5rem auto 0 auto;
-        max-width: 1000px;
-        position: relative;
-        z-index: 1;
-        box-shadow:
-            0 4px 6px rgba(0, 0, 0, 0.05),
-            0 20px 40px rgba(0, 0, 0, 0.08),
-            inset 0 1px 0 rgba(255, 255, 255, 0.6);
-    ">
+    <div style="background: rgba(255, 255, 255, 0.75); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 24px; padding: 3rem 2rem 2.5rem; margin: 1.5rem auto 0 auto; max-width: 1000px; position: relative; z-index: 1; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 20px 40px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);">
         <!-- Subtle Top Highlight for Glass Effect -->
-        <div style="
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
-        "></div>
+        <div style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);"></div>
 
         <!-- Content Container -->
         <div style="position: relative; z-index: 1; max-width: 850px; margin: 0 auto; text-align: center;">
-            <!-- Title with Lora Serif Font -->
-            <h1 style="
-                font-family: 'Lora', Georgia, serif;
-                font-size: clamp(2.5rem, 6vw, 3.5rem);
-                font-weight: 700;
-                color: #1E293B;
-                margin: 0 0 0.75rem 0;
-                letter-spacing: -0.02em;
-                line-height: 1.15;
-            ">
+            <!-- Title -->
+            <h1 style="font-family: 'Lora', Georgia, serif; font-size: clamp(2.5rem, 6vw, 3.5rem); font-weight: 700; color: #1E293B; margin: 0 0 0.75rem 0; letter-spacing: -0.02em; line-height: 1.15;">
                 Memory Loop
             </h1>
 
-            <!-- Tagline - High Contrast for Accessibility -->
-            <p style="
-                font-family: 'Raleway', sans-serif;
-                font-size: clamp(1.1rem, 2.5vw, 1.35rem);
-                font-weight: 500;
-                color: #334155;
-                margin: 0 0 1.75rem 0;
-                line-height: 1.7;
-                max-width: 650px;
-                margin-left: auto;
-                margin-right: auto;
-            ">
+            <!-- Tagline -->
+            <p style="font-family: 'Raleway', sans-serif; font-size: clamp(1.1rem, 2.5vw, 1.35rem); font-weight: 500; color: #334155; margin: 0 0 1.75rem 0; line-height: 1.7; max-width: 650px; margin-left: auto; margin-right: auto;">
                 A compassionate companion that helps people with dementia remember their
                 <strong style="color: #2563EB; font-weight: 600;">loved ones</strong>
                 and the stories that matter most.
             </p>
 
-            <!-- Feature Pills with SVG Icons (No Emojis) -->
+            <!-- Feature Pills -->
             <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; margin-top: 1.5rem;">
-                <span style="
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.6rem;
-                    background: rgba(255, 255, 255, 0.9);
-                    backdrop-filter: blur(8px);
-                    padding: 0.75rem 1.25rem;
-                    border-radius: 50px;
-                    font-family: 'Raleway', sans-serif;
-                    font-weight: 600;
-                    font-size: 0.95rem;
-                    color: #1E293B;
-                    border: 1px solid rgba(37, 99, 235, 0.2);
-                    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
-                    transition: transform 0.2s ease, box-shadow 0.2s ease;
-                ">
-                    <span style="color: #2563EB;">{BRAIN_ICON}</span>
+                <span style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); padding: 0.6rem 1rem; border-radius: 50px; font-family: 'Raleway', sans-serif; font-weight: 600; font-size: 0.9rem; color: #1E293B; border: 1px solid rgba(37, 99, 235, 0.25); box-shadow: 0 2px 8px rgba(37, 99, 235, 0.12);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.54"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.54"/></svg>
                     Face Recognition
                 </span>
-                <span style="
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.6rem;
-                    background: rgba(255, 255, 255, 0.9);
-                    backdrop-filter: blur(8px);
-                    padding: 0.75rem 1.25rem;
-                    border-radius: 50px;
-                    font-family: 'Raleway', sans-serif;
-                    font-weight: 600;
-                    font-size: 0.95rem;
-                    color: #1E293B;
-                    border: 1px solid rgba(249, 115, 22, 0.2);
-                    box-shadow: 0 2px 8px rgba(249, 115, 22, 0.1);
-                    transition: transform 0.2s ease, box-shadow 0.2s ease;
-                ">
-                    <span style="color: #F97316;">{CAMERA_ICON}</span>
+                <span style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); padding: 0.6rem 1rem; border-radius: 50px; font-family: 'Raleway', sans-serif; font-weight: 600; font-size: 0.9rem; color: #1E293B; border: 1px solid rgba(249, 115, 22, 0.25); box-shadow: 0 2px 8px rgba(249, 115, 22, 0.12);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
                     Object Detection
                 </span>
-                <span style="
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.6rem;
-                    background: rgba(255, 255, 255, 0.9);
-                    backdrop-filter: blur(8px);
-                    padding: 0.75rem 1.25rem;
-                    border-radius: 50px;
-                    font-family: 'Raleway', sans-serif;
-                    font-weight: 600;
-                    font-size: 0.95rem;
-                    color: #1E293B;
-                    border: 1px solid rgba(34, 197, 94, 0.2);
-                    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.1);
-                    transition: transform 0.2s ease, box-shadow 0.2s ease;
-                ">
-                    <span style="color: #22C55E;">{MIC_ICON}</span>
+                <span style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); padding: 0.6rem 1rem; border-radius: 50px; font-family: 'Raleway', sans-serif; font-weight: 600; font-size: 0.9rem; color: #1E293B; border: 1px solid rgba(34, 197, 94, 0.25); box-shadow: 0 2px 8px rgba(34, 197, 94, 0.12);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
                     Live Recording
                 </span>
-                <span style="
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 0.6rem;
-                    background: rgba(255, 255, 255, 0.9);
-                    backdrop-filter: blur(8px);
-                    padding: 0.75rem 1.25rem;
-                    border-radius: 50px;
-                    font-family: 'Raleway', sans-serif;
-                    font-weight: 600;
-                    font-size: 0.95rem;
-                    color: #1E293B;
-                    border: 1px solid rgba(139, 92, 246, 0.2);
-                    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.1);
-                    transition: transform 0.2s ease, box-shadow 0.2s ease;
-                ">
-                    <span style="color: #8B5CF6;">{VIDEO_ICON}</span>
+                <span style="display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(8px); padding: 0.6rem 1rem; border-radius: 50px; font-family: 'Raleway', sans-serif; font-weight: 600; font-size: 0.9rem; color: #1E293B; border: 1px solid rgba(139, 92, 246, 0.25); box-shadow: 0 2px 8px rgba(139, 92, 246, 0.12);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2" ry="2"/></svg>
                     Video Subtitles
                 </span>
             </div>
@@ -558,28 +429,17 @@ st.markdown(f"""
     </div>
 </div>
 
-<!-- CSS for Animations and Reduced Motion -->
 <style>
-    @keyframes blobFloat {{
-        0%, 100% {{ transform: translate(0, 0); }}
-        25% {{ transform: translate(20px, -30px); }}
-        50% {{ transform: translate(-10px, 20px); }}
-        75% {{ transform: translate(30px, 10px); }}
-    }}
-
-    /* Respect reduced motion preferences for accessibility */
-    @media (prefers-reduced-motion: reduce) {{
-        * {{
-            animation: none !important;
-            transition: none !important;
-        }}
-    }}
-
-    /* Ensure focus states for keyboard navigation */
-    *:focus-visible {{
-        outline: 3px solid #2563EB;
-        outline-offset: 2px;
-    }}
+    @keyframes blobFloat {
+        0%, 100% { transform: translate(0, 0); }
+        25% { transform: translate(20px, -30px); }
+        50% { transform: translate(-10px, 20px); }
+        75% { transform: translate(30px, 10px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+        * { animation: none !important; transition: none !important; }
+    }
+    *:focus-visible { outline: 3px solid #2563EB; outline-offset: 2px; }
 </style>
 """, unsafe_allow_html=True)
 
