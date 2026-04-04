@@ -12,3 +12,6 @@ pyaudio
 Pillow
 gTTS
 pygame
+python-dotenv
+edge-tts
+face-recognition

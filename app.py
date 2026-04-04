@@ -4,6 +4,10 @@ import torch
 from torch import hub
 import numpy as np
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 from groq import Groq
 import tempfile
 import base64
